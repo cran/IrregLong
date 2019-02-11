@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+<title>Overview</title>
+
+<script type="text/javascript">
+window.onload = function() {
+  var imgs = document.getElementsByTagName('img'), i, img;
+  for (i = 0; i < imgs.length; i++) {
+    img = imgs[i];
+    // center an image if it is the only element of its parent
+    if (img.parentElement.childElementCount === 1)
+      img.parentElement.style.textAlign = 'center';
+  }
+};
+</script>
+
+<!-- Styles for R syntax highlighter -->
+<style type="text/css">
+   pre .operator,
+   pre .paren {
+     color: rgb(104, 118, 135)
+   }
+
+   pre .literal {
+     color: #990073
+   }
+
+   pre .number {
+     color: #099;
+   }
+
+   pre .comment {
+     color: #998;
+     font-style: italic
+   }
+
+   pre .keyword {
+     color: #900;
+     font-weight: bold
+   }
+
+   pre .identifier {
+     color: rgb(0, 0, 0);
+   }
+
+   pre .string {
+     color: #d14;
+   }
+</style>
+
+<!-- R syntax highlighter -->
+<script type="text/javascript">
+var hljs=new function(){function m(p){return p.replace(/&/gm,"&amp;").replace(/</gm,"&lt;")}function f(r,q,p){return RegExp(q,"m"+(r.cI?"i":"")+(p?"g":""))}function b(r){for(var p=0;p<r.childNodes.length;p++){var q=r.childNodes[p];if(q.nodeName=="CODE"){return q}if(!(q.nodeType==3&&q.nodeValue.match(/\s+/))){break}}}function h(t,s){var p="";for(var r=0;r<t.childNodes.length;r++){if(t.childNodes[r].nodeType==3){var q=t.childNodes[r].nodeValue;if(s){q=q.replace(/\n/g,"")}p+=q}else{if(t.childNodes[r].nodeName=="BR"){p+="\n"}else{p+=h(t.childNodes[r])}}}if(/MSIE [678]/.test(navigator.userAgent)){p=p.replace(/\r/g,"\n")}return p}function a(s){var r=s.className.split(/\s+/);r=r.concat(s.parentNode.className.split(/\s+/));for(var q=0;q<r.length;q++){var p=r[q].replace(/^language-/,"");if(e[p]){return p}}}function c(q){var p=[];(function(s,t){for(var r=0;r<s.childNodes.length;r++){if(s.childNodes[r].nodeType==3){t+=s.childNodes[r].nodeValue.length}else{if(s.childNodes[r].nodeName=="BR"){t+=1}else{if(s.childNodes[r].nodeType==1){p.push({event:"start",offset:t,node:s.childNodes[r]});t=arguments.callee(s.childNodes[r],t);p.push({event:"stop",offset:t,node:s.childNodes[r]})}}}}return t})(q,0);return p}function k(y,w,x){var q=0;var z="";var s=[];function u(){if(y.length&&w.length){if(y[0].offset!=w[0].offset){return(y[0].offset<w[0].offset)?y:w}else{return w[0].event=="start"?y:w}}else{return y.length?y:w}}function t(D){var A="<"+D.nodeName.toLowerCase();for(var B=0;B<D.attributes.length;B++){var C=D.attributes[B];A+=" "+C.nodeName.toLowerCase();if(C.value!==undefined&&C.value!==false&&C.value!==null){A+='="'+m(C.value)+'"'}}return A+">"}while(y.length||w.length){var v=u().splice(0,1)[0];z+=m(x.substr(q,v.offset-q));q=v.offset;if(v.event=="start"){z+=t(v.node);s.push(v.node)}else{if(v.event=="stop"){var p,r=s.length;do{r--;p=s[r];z+=("</"+p.nodeName.toLowerCase()+">")}while(p!=v.node);s.splice(r,1);while(r<s.length){z+=t(s[r]);r++}}}}return z+m(x.substr(q))}function j(){function q(x,y,v){if(x.compiled){return}var u;var s=[];if(x.k){x.lR=f(y,x.l||hljs.IR,true);for(var w in x.k){if(!x.k.hasOwnProperty(w)){continue}if(x.k[w] instanceof Object){u=x.k[w]}else{u=x.k;w="keyword"}for(var r in u){if(!u.hasOwnProperty(r)){continue}x.k[r]=[w,u[r]];s.push(r)}}}if(!v){if(x.bWK){x.b="\\b("+s.join("|")+")\\s"}x.bR=f(y,x.b?x.b:"\\B|\\b");if(!x.e&&!x.eW){x.e="\\B|\\b"}if(x.e){x.eR=f(y,x.e)}}if(x.i){x.iR=f(y,x.i)}if(x.r===undefined){x.r=1}if(!x.c){x.c=[]}x.compiled=true;for(var t=0;t<x.c.length;t++){if(x.c[t]=="self"){x.c[t]=x}q(x.c[t],y,false)}if(x.starts){q(x.starts,y,false)}}for(var p in e){if(!e.hasOwnProperty(p)){continue}q(e[p].dM,e[p],true)}}function d(B,C){if(!j.called){j();j.called=true}function q(r,M){for(var L=0;L<M.c.length;L++){if((M.c[L].bR.exec(r)||[null])[0]==r){return M.c[L]}}}function v(L,r){if(D[L].e&&D[L].eR.test(r)){return 1}if(D[L].eW){var M=v(L-1,r);return M?M+1:0}return 0}function w(r,L){return L.i&&L.iR.test(r)}function K(N,O){var M=[];for(var L=0;L<N.c.length;L++){M.push(N.c[L].b)}var r=D.length-1;do{if(D[r].e){M.push(D[r].e)}r--}while(D[r+1].eW);if(N.i){M.push(N.i)}return f(O,M.join("|"),true)}function p(M,L){var N=D[D.length-1];if(!N.t){N.t=K(N,E)}N.t.lastIndex=L;var r=N.t.exec(M);return r?[M.substr(L,r.index-L),r[0],false]:[M.substr(L),"",true]}function z(N,r){var L=E.cI?r[0].toLowerCase():r[0];var M=N.k[L];if(M&&M instanceof Array){return M}return false}function F(L,P){L=m(L);if(!P.k){return L}var r="";var O=0;P.lR.lastIndex=0;var M=P.lR.exec(L);while(M){r+=L.substr(O,M.index-O);var N=z(P,M);if(N){x+=N[1];r+='<span class="'+N[0]+'">'+M[0]+"</span>"}else{r+=M[0]}O=P.lR.lastIndex;M=P.lR.exec(L)}return r+L.substr(O,L.length-O)}function J(L,M){if(M.sL&&e[M.sL]){var r=d(M.sL,L);x+=r.keyword_count;return r.value}else{return F(L,M)}}function I(M,r){var L=M.cN?'<span class="'+M.cN+'">':"";if(M.rB){y+=L;M.buffer=""}else{if(M.eB){y+=m(r)+L;M.buffer=""}else{y+=L;M.buffer=r}}D.push(M);A+=M.r}function G(N,M,Q){var R=D[D.length-1];if(Q){y+=J(R.buffer+N,R);return false}var P=q(M,R);if(P){y+=J(R.buffer+N,R);I(P,M);return P.rB}var L=v(D.length-1,M);if(L){var O=R.cN?"</span>":"";if(R.rE){y+=J(R.buffer+N,R)+O}else{if(R.eE){y+=J(R.buffer+N,R)+O+m(M)}else{y+=J(R.buffer+N+M,R)+O}}while(L>1){O=D[D.length-2].cN?"</span>":"";y+=O;L--;D.length--}var r=D[D.length-1];D.length--;D[D.length-1].buffer="";if(r.starts){I(r.starts,"")}return R.rE}if(w(M,R)){throw"Illegal"}}var E=e[B];var D=[E.dM];var A=0;var x=0;var y="";try{var s,u=0;E.dM.buffer="";do{s=p(C,u);var t=G(s[0],s[1],s[2]);u+=s[0].length;if(!t){u+=s[1].length}}while(!s[2]);if(D.length>1){throw"Illegal"}return{r:A,keyword_count:x,value:y}}catch(H){if(H=="Illegal"){return{r:0,keyword_count:0,value:m(C)}}else{throw H}}}function g(t){var p={keyword_count:0,r:0,value:m(t)};var r=p;for(var q in e){if(!e.hasOwnProperty(q)){continue}var s=d(q,t);s.language=q;if(s.keyword_count+s.r>r.keyword_count+r.r){r=s}if(s.keyword_count+s.r>p.keyword_count+p.r){r=p;p=s}}if(r.language){p.second_best=r}return p}function i(r,q,p){if(q){r=r.replace(/^((<[^>]+>|\t)+)/gm,function(t,w,v,u){return w.replace(/\t/g,q)})}if(p){r=r.replace(/\n/g,"<br>")}return r}function n(t,w,r){var x=h(t,r);var v=a(t);var y,s;if(v){y=d(v,x)}else{return}var q=c(t);if(q.length){s=document.createElement("pre");s.innerHTML=y.value;y.value=k(q,c(s),x)}y.value=i(y.value,w,r);var u=t.className;if(!u.match("(\\s|^)(language-)?"+v+"(\\s|$)")){u=u?(u+" "+v):v}if(/MSIE [678]/.test(navigator.userAgent)&&t.tagName=="CODE"&&t.parentNode.tagName=="PRE"){s=t.parentNode;var p=document.createElement("div");p.innerHTML="<pre><code>"+y.value+"</code></pre>";t=p.firstChild.firstChild;p.firstChild.cN=s.cN;s.parentNode.replaceChild(p.firstChild,s)}else{t.innerHTML=y.value}t.className=u;t.result={language:v,kw:y.keyword_count,re:y.r};if(y.second_best){t.second_best={language:y.second_best.language,kw:y.second_best.keyword_count,re:y.second_best.r}}}function o(){if(o.called){return}o.called=true;var r=document.getElementsByTagName("pre");for(var p=0;p<r.length;p++){var q=b(r[p]);if(q){n(q,hljs.tabReplace)}}}function l(){if(window.addEventListener){window.addEventListener("DOMContentLoaded",o,false);window.addEventListener("load",o,false)}else{if(window.attachEvent){window.attachEvent("onload",o)}else{window.onload=o}}}var e={};this.LANGUAGES=e;this.highlight=d;this.highlightAuto=g;this.fixMarkup=i;this.highlightBlock=n;this.initHighlighting=o;this.initHighlightingOnLoad=l;this.IR="[a-zA-Z][a-zA-Z0-9_]*";this.UIR="[a-zA-Z_][a-zA-Z0-9_]*";this.NR="\\b\\d+(\\.\\d+)?";this.CNR="\\b(0[xX][a-fA-F0-9]+|(\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)";this.BNR="\\b(0b[01]+)";this.RSR="!|!=|!==|%|%=|&|&&|&=|\\*|\\*=|\\+|\\+=|,|\\.|-|-=|/|/=|:|;|<|<<|<<=|<=|=|==|===|>|>=|>>|>>=|>>>|>>>=|\\?|\\[|\\{|\\(|\\^|\\^=|\\||\\|=|\\|\\||~";this.ER="(?![\\s\\S])";this.BE={b:"\\\\.",r:0};this.ASM={cN:"string",b:"'",e:"'",i:"\\n",c:[this.BE],r:0};this.QSM={cN:"string",b:'"',e:'"',i:"\\n",c:[this.BE],r:0};this.CLCM={cN:"comment",b:"//",e:"$"};this.CBLCLM={cN:"comment",b:"/\\*",e:"\\*/"};this.HCM={cN:"comment",b:"#",e:"$"};this.NM={cN:"number",b:this.NR,r:0};this.CNM={cN:"number",b:this.CNR,r:0};this.BNM={cN:"number",b:this.BNR,r:0};this.inherit=function(r,s){var p={};for(var q in r){p[q]=r[q]}if(s){for(var q in s){p[q]=s[q]}}return p}}();hljs.LANGUAGES.cpp=function(){var a={keyword:{"false":1,"int":1,"float":1,"while":1,"private":1,"char":1,"catch":1,"export":1,virtual:1,operator:2,sizeof:2,dynamic_cast:2,typedef:2,const_cast:2,"const":1,struct:1,"for":1,static_cast:2,union:1,namespace:1,unsigned:1,"long":1,"throw":1,"volatile":2,"static":1,"protected":1,bool:1,template:1,mutable:1,"if":1,"public":1,friend:2,"do":1,"return":1,"goto":1,auto:1,"void":2,"enum":1,"else":1,"break":1,"new":1,extern:1,using:1,"true":1,"class":1,asm:1,"case":1,typeid:1,"short":1,reinterpret_cast:2,"default":1,"double":1,register:1,explicit:1,signed:1,typename:1,"try":1,"this":1,"switch":1,"continue":1,wchar_t:1,inline:1,"delete":1,alignof:1,char16_t:1,char32_t:1,constexpr:1,decltype:1,noexcept:1,nullptr:1,static_assert:1,thread_local:1,restrict:1,_Bool:1,complex:1},built_in:{std:1,string:1,cin:1,cout:1,cerr:1,clog:1,stringstream:1,istringstream:1,ostringstream:1,auto_ptr:1,deque:1,list:1,queue:1,stack:1,vector:1,map:1,set:1,bitset:1,multiset:1,multimap:1,unordered_set:1,unordered_map:1,unordered_multiset:1,unordered_multimap:1,array:1,shared_ptr:1}};return{dM:{k:a,i:"</",c:[hljs.CLCM,hljs.CBLCLM,hljs.QSM,{cN:"string",b:"'\\\\?.",e:"'",i:"."},{cN:"number",b:"\\b(\\d+(\\.\\d*)?|\\.\\d+)(u|U|l|L|ul|UL|f|F)"},hljs.CNM,{cN:"preprocessor",b:"#",e:"$"},{cN:"stl_container",b:"\\b(deque|list|queue|stack|vector|map|set|bitset|multiset|multimap|unordered_map|unordered_set|unordered_multiset|unordered_multimap|array)\\s*<",e:">",k:a,r:10,c:["self"]}]}}}();hljs.LANGUAGES.r={dM:{c:[hljs.HCM,{cN:"number",b:"\\b0[xX][0-9a-fA-F]+[Li]?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+(?:[eE][+\\-]?\\d*)?L\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+\\.(?!\\d)(?:i\\b)?",e:hljs.IMMEDIATE_RE,r:1},{cN:"number",b:"\\b\\d+(?:\\.\\d*)?(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\.\\d+(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"keyword",b:"(?:tryCatch|library|setGeneric|setGroupGeneric)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\.",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\d+(?![\\w.])",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\b(?:function)",e:hljs.IMMEDIATE_RE,r:2},{cN:"keyword",b:"(?:if|in|break|next|repeat|else|for|return|switch|while|try|stop|warning|require|attach|detach|source|setMethod|setClass)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"literal",b:"(?:NA|NA_integer_|NA_real_|NA_character_|NA_complex_)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"literal",b:"(?:NULL|TRUE|FALSE|T|F|Inf|NaN)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"identifier",b:"[a-zA-Z.][a-zA-Z0-9._]*\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"<\\-(?!\\s*\\d)",e:hljs.IMMEDIATE_RE,r:2},{cN:"operator",b:"\\->|<\\-",e:hljs.IMMEDIATE_RE,r:1},{cN:"operator",b:"%%|~",e:hljs.IMMEDIATE_RE},{cN:"operator",b:">=|<=|==|!=|\\|\\||&&|=|\\+|\\-|\\*|/|\\^|>|<|!|&|\\||\\$|:",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"%",e:"%",i:"\\n",r:1},{cN:"identifier",b:"`",e:"`",r:0},{cN:"string",b:'"',e:'"',c:[hljs.BE],r:0},{cN:"string",b:"'",e:"'",c:[hljs.BE],r:0},{cN:"paren",b:"[[({\\])}]",e:hljs.IMMEDIATE_RE,r:0}]}};
+hljs.initHighlightingOnLoad();
+</script>
+
+<!-- MathJax scripts -->
+<script type="text/javascript" src="https://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 13px;
+}
+
+body {
+  max-width: 800px;
+  margin: auto;
+  padding: 1em;
+  line-height: 20px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 {
+   font-size:2.2em;
+}
+
+h2 {
+   font-size:1.8em;
+}
+
+h3 {
+   font-size:1.4em;
+}
+
+h4 {
+   font-size:1.0em;
+}
+
+h5 {
+   font-size:0.9em;
+}
+
+h6 {
+   font-size:0.8em;
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre, img {
+  max-width: 100%;
+}
+pre {
+  overflow-x: auto;
+}
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code {
+  font-size: 92%;
+  border: 1px solid #ccc;
+}
+
+code[class] {
+  background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * {
+      background: transparent !important;
+      color: black !important;
+      filter:none !important;
+      -ms-filter: none !important;
+   }
+
+   body {
+      font-size:12pt;
+      max-width:100%;
+   }
+
+   a, a:visited {
+      text-decoration: underline;
+   }
+
+   hr {
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote {
+      padding-right: 1em;
+      page-break-inside: avoid;
+   }
+
+   tr, img {
+      page-break-inside: avoid;
+   }
+
+   img {
+      max-width: 100% !important;
+   }
+
+   @page :left {
+      margin: 15mm 20mm 15mm 10mm;
+   }
+
+   @page :right {
+      margin: 15mm 10mm 15mm 20mm;
+   }
+
+   p, h2, h3 {
+      orphans: 3; widows: 3;
+   }
+
+   h2, h3 {
+      page-break-after: avoid;
+   }
+}
+</style>
+
+
+
+</head>
+
+<body>
+<h2>Overview</h2>
+
+<p>Longitudinal data often has follow-up times that are irregular and potentially related to outcomes. For example, in a clinic-based cohort study where all follow-up is part of usual care, patients may visit more often when unwell. This risks over-estimating the burden of disease unless data are analysed appropriately. For example, in a study of HIV positive mothers, Buzkova et al @Buzkova found a two-fold over-estimation of the estimated prevalence of pneumonia when analysis ignored the fact that women were more likely to visit between scheduled visits when they were unwell</p>
+
+<p>There are two categories of methods available for analysing this type of data: methods based on inverse-intensity weighting, and methods based on semi-parametric joint models (see @Pullenayegum2015 for an overview). This package provides methods for inverse-intensity weighting. </p>
+
+<p>Inverse-intensity weighting weights data by the reciprocal of the intensity (or, equivalently, the hazard) of the visit process. Inverse-intensity weighting works in a similar way to survey weighting: observations with a higher intensity are over-represented in the data, and hence should receive less weight. Conversely, observations with lower intensity are under-represented in the data, and hence receive more weight. @LSR show that inverse-intensity weighting followed by a marginal analysis with a generalized estimating equation (GEE) results in unbiased estimation, subject to the assumptions set out below. This package contains functions to compute inverse-intensity weights, and also to fit inverse-intensity weighted GEEs.</p>
+
+<p>Sometimes inference may be desired for a model for which weighting is not straightforward, for example a generalized linear mixed model or a latent class mixed model. In these cases, multiple outputation is a useful alternative to inverse-intensity weighting.</p>
+
+<p>Multiple outputation works by discarding (outputting) excess data [@Hoffman2001; @Follmann2003]. Visits are randomly deleted from the dataset with probability inversely proportional to the visit intensity [@Pullenayegum2016]. The resulting thinned visit process is independent of the outcome process (subject to the assumptions below), and can hence be analysed using standard methods. To avoid wasting data, the random deletion is repeated multiple times and the results from each analysis combined. Conceptually, multiple outputation is the opposite of multiple imputation: where multiple imputation imputes missing observations multiple times, multiple outputation discards excess observations multiple times. This package contains functions to create outputted datasets, as well as to combine results across multiple outputations.</p>
+
+<h2>Review of Inverse-intensity weighted GEEs</h2>
+
+<p>Suppose \(Y_i(t)\) is the outcome of interest for subject \(i\) at time \(t\), let \(X_i(t)\) be a possibly time-dependent covariate, and suppose interest is in the marginal model \[E(Y_i(t)|X_i(t))=X_i(t)\beta.\] Moreover, suppose that we observe \(Y_i\) only at times \(T_{i1},T_{i2},\ldots, T_{in_i}\). Let \(N_i(t)\) be the counting process for the visit times, that is \(N_i(t)=\sum_{j}I(T_{ij}\leq t)\), where \(I()\) is an indicator function. Suppose moreover that there is a vector of observed covariates \(Z_i(t)\) such that \[\lim_{\delta \downarrow 0} \frac{E(N(t)-N(t-\delta))|Y_i(t),Z_i(t))}{\delta}=\frac{E(N(t)-N(t-\delta))|Z_i(t))}{\delta}=\lambda(t;Z_i(t))\] for some hazard function \(\lambda\). If this assumption is not met, alternative methods of analysis should be considered (e.g. semi-parametric joint models).</p>
+
+<p>The usual GEE equations will result in biased estimates of \(\beta\) since
+\[E(\sum_i\int_0^\tau X_i^\prime (Y_i(t) - X_i(t)\beta)dN_i(t)) =E(\sum_i\int_0^\tau X_i^\prime E((Y_i(t) - X_i(t)\beta)dN_i(t)\mid X_i(t)) \neq 0  \]
+Provided that the conditional independence assumption holds, consistent estimates of \(\beta\) may be obtained by weighting the GEE equations by \(sw_i(t)=s_0(t)/\lambda_i(t)\)
+\[E(\sum_i\int_0^\tau X_i^\prime sw_i(t)(Y_i(t) - X_i(t)\beta)dN_i(t)) =E(\sum_i\int_0^\tau X_i^\prime E(sw_i(t)(Y_i(t) - X_i(t)\beta)dN_i(t)\mid X_i(t),Y_i(t)) = E(\sum_i\int_0^\tau X_i^\prime sw_i(t)(Y_i(t) - X_i(t)\beta)\lambda_i(t)dt=0.  \]</p>
+
+<h2>Implementing Inverse-Intensity weighting</h2>
+
+<p>The first step in inverse-intensity weighting is to calculate the weights, usually by fitting a proportional hazards model to the recurrent event process formed by the visit times. That is, one fits the model 
+\[\lambda(t;Z_i(t))=\lambda_0(t)\exp(Z_i(t)\gamma).\]
+This can be done using the coxph function, however the data usually requires some pre-processing. Firstly, the counting process formulation takes the form Surv(start.time,stop.time,event) and so typically requires the time variable to be lagged. Time-varying covariates will often need to be lagged as well. Secondly, if follow-up was stopped at a time later than the last visit, then additional rows capturing the censoring time must be added to the dataset. For example, if follow-up is stopped after two years, and an individual&#39;s last visit is at 1.5 years, then we must include the information that there was no visit between 1.5 years and two years when estimating the visit intensity model. Using the data on just the observed visits ignores this.</p>
+
+<p>The IrregLong package simplifies modelling of the visit process by creating a dataset with lagged variables (specified using lagvars=) and time intervals corresponding to censoring times (specified using maxfu=).</p>
+
+<p>The inverse-intensity weight is \(w_i(t) = \frac{\exp(-Z_i(t)\gamma)}{\lambda_0(t)}\). Following
+@BuzkovaCJS2007, all inverse-intensity weights in this package are stabilized by the baseline hazard \(\lambda_0(t)\), so that the stabilized weight is \(sw_i(t)=\exp(-Z_i(t)\gamma)\). In some settings one may additionally wish to stabilize by a function of the time-invariant covariates in \(X_i(t)\), and an option to do so is included in the functions. One can then fit a GEE to obtain the regression coefficients \(\beta\) corresponding to regressing \(Y_i(t)\) on \(X_i(t)\), weighting by \(sw_i(t)\). </p>
+
+<p>An important practical point is that when using inverse-intensity weighting the working variance for the GEE must be set to the identity. This is because functions for fitting GEEs interpret the weights as indicating heteroscedasticity. Thus is \(Y_i\) is the vector of observations for subject \(i\), \(X_i\) is the matrix of corresponding covariates, \(R_i\) is the working variance matrix and \(D_i\) is a diagonal matrix whose \(jj\) entry of the weight for the \(j^{th}\) observation for subject \(i\), then standard GEE software solves
+\[\sum_iX_i^\prime D_i^{&frac12;}R_i^{-1}D_i^{&frac12;}(Y_i-X_i\beta)=0,\]
+whereas we wish to solve
+\[\sum_iX_i^\prime R_i^{-1}D_i(Y_i-X_i\beta)=0.\]
+The two are, however, identical if \(R_i\) is the identity matrix. While at first glance it may seem appealing to create a GEE estimation function that implements the weights as desired so as to allow for non-diagonal working variance matrices, note that the working variance should then be the variance of \(D_i(Y_i-X_i\beta)\) rather than \((Y_i-X_i\beta)\). Since the weights usually involve time-dependent covariates that are often internal, the standard correlation structures (exchangeable, autoregressive) become less plausible.</p>
+
+<h3>Example</h3>
+
+<p>These methods are illustrated using the Phenobarb dataset from the MEMSS package. Routine clinical pharmacokinetic data were collected from 59 preterm infants who received phenobarbital in order to prevent seizures. Blood draws were taken to determine serum concentration of phenobarbital, with the timing and number of draws varying among infants. For the purposes of illustration this analysis focuses not on pharmacokinetics but on the mean serum concentration of phenobarbital over time.</p>
+
+<p>This dataset contains some rows corresponding to times at which phenobarbital given and others at which a blood draw was taken to determine serum phenobarbital concentration. Analysis shows that once previous serum concentration is accounted for, dose is uninformative about the timing of blood draws, and hence we remove rows at which concentration was not measured. Moreover, the IrregLong package requires the variable identifying subjects to be numeric rather than a factors, so we create a new numeric id variable. Finally, since all rows now correspond to events, we set the event indicator to be 1 throughout the whole dataset.</p>
+
+<pre><code class="r">library(IrregLong)
+library(MEMSS)
+library(survival)
+library(geepack)
+library(frailtypack)
+</code></pre>
+
+<pre><code class="r">data(Phenobarb)
+Phenobarb$id &lt;- as.numeric(Phenobarb$Subject)
+Phenobarb$event &lt;- as.numeric(is.finite(Phenobarb$conc))
+Phenobarb.conc &lt;- Phenobarb[is.finite(Phenobarb$conc),]
+head(Phenobarb.conc)
+</code></pre>
+
+<pre><code>##    Subject  Wt Apgar ApgarInd  time dose conc id event
+## 2        1 1.4     7     &gt;= 5   2.0   NA 17.3  1     1
+## 12       1 1.4     7     &gt;= 5 112.5   NA 31.0  1     1
+## 14       2 1.5     9     &gt;= 5   2.0   NA  9.7 12     1
+## 20       2 1.5     9     &gt;= 5  63.5   NA 24.6 12     1
+## 27       2 1.5     9     &gt;= 5 135.5   NA 33.0 12     1
+## 29       3 1.5     6     &gt;= 5   1.5   NA 18.0 23     1
+</code></pre>
+
+<p>To fit an inverse intensity weighted GEE, one begins by modelling the visit intensity. Although the IrregLong package includes a function that calculates both the inverse-intensity weights and the weighted GEE in a single command, it can be helpful to start by focussing on the visit intensity model. Modelling is usually done through a Cox proportional hazards model on the recurrent visit process. To do this, we need to specify time periods at risk, and so need to lag the time variable. If there are time-dependent covariates and we suspect that the value at the last measurement is predictive of when the next measurement will be taken, these time-dependent covariates must also be lagged. The IrregLong package simplifies this process by allowing the user to specify which covariates should be lagged (lagvars=c(&ldquo;time&rdquo;,&ldquo;conc&rdquo;)) and creating these lagged covariates internally (time.lag,conc.lag). The value of the lagged variables will by default be missing for the first observation in each subject, but this can be changed through the lagfirst argument. We set the lagged  value of time at the first observed blood draw to be zero (lagfirst=0) since observation started at birth for all infants. Similarly, we set the lagged value of serum phenobarbital concentration to be zero at the first draw, since the last known value of serum concentration was at birth, prior to administration of phenobarbital. However, since it is reasonable to expect that the effect of last known concentration on the time to the next blood draw may differ between the first and subsequent draws, we include a separate effect for whether the last known concentration was positive (equivalent to whether this is the first blood draw). </p>
+
+<pre><code class="r">i &lt;- iiw.weights(Surv(time.lag,time,event)~Wt + Apgar + I(conc.lag&gt;0) + conc.lag +
+      cluster(Subject),id=&quot;Subject&quot;,time=&quot;time&quot;,event=&quot;event&quot;,data=Phenobarb.conc,
+      invariant=&quot;Subject&quot;,lagvars=c(&quot;time&quot;,&quot;conc&quot;),maxfu=NULL,lagfirst=0,first=FALSE)
+i$m
+</code></pre>
+
+<pre><code>## Call:
+## coxph(formula = formulaph, data = datacox)
+## 
+##                         coef exp(coef) se(coef) robust se      z        p
+## Wt                  -0.12121   0.88585  0.16297   0.16320 -0.743   0.4577
+## Apgar10              0.04516   1.04619  0.70743   0.49029  0.092   0.9266
+## Apgar2               0.11079   1.11716  0.54244   0.46269  0.239   0.8108
+## Apgar3               0.27355   1.31462  0.64840   0.82652  0.331   0.7407
+## Apgar4              -1.81324   0.16312  0.65298   0.89810 -2.019   0.0435
+## Apgar5              -0.60999   0.54336  0.40186   0.43492 -1.403   0.1608
+## Apgar6              -0.23035   0.79426  0.38609   0.49068 -0.469   0.6388
+## Apgar7              -0.59532   0.55139  0.37435   0.45818 -1.299   0.1938
+## Apgar8              -0.20860   0.81172  0.37623   0.45657 -0.457   0.6478
+## Apgar9              -0.48267   0.61713  0.43289   0.46944 -1.028   0.3039
+## I(conc.lag &gt; 0)TRUE -2.05139   0.12856  0.52619   0.52160 -3.933 8.39e-05
+## conc.lag            -0.04351   0.95742  0.01825   0.02035 -2.138   0.0325
+## 
+## Likelihood ratio test=78.21  on 12 df, p=9.051e-12
+## n= 155, number of events= 155
+</code></pre>
+
+<p>Since birth weight and Apgar score are not significant, we consider whether the model can be simplified - first by including Apgar score as an indicator (\(\geq 5\) vs. \(<5\)), then by removing variables that are not significant.</p>
+
+<pre><code class="r">i &lt;- iiw.weights(Surv(time.lag,time,event)~Wt + ApgarInd + I(conc.lag&gt;0) + conc.lag + 
+      cluster(Subject),id=&quot;Subject&quot;,time=&quot;time&quot;,event=&quot;event&quot;,data=Phenobarb.conc,
+      invariant=&quot;Subject&quot;,lagvars=c(&quot;time&quot;,&quot;conc&quot;),maxfu=NULL,lagfirst=0,first=FALSE)
+i$m
+</code></pre>
+
+<pre><code>## Call:
+## coxph(formula = formulaph, data = datacox)
+## 
+##                         coef exp(coef) se(coef) robust se      z       p
+## Wt                  -0.01005   0.99000  0.12612   0.10674 -0.094 0.92502
+## ApgarInd&gt;= 5        -0.06327   0.93869  0.23180   0.31516 -0.201 0.84089
+## I(conc.lag &gt; 0)TRUE -1.56892   0.20827  0.47028   0.49496 -3.170 0.00153
+## conc.lag            -0.03606   0.96459  0.01713   0.01678 -2.149 0.03162
+## 
+## Likelihood ratio test=62.7  on 4 df, p=7.837e-13
+## n= 155, number of events= 155
+</code></pre>
+
+<pre><code class="r">i &lt;- iiw.weights(Surv(time.lag,time,event)~ApgarInd + I(conc.lag&gt;0) + conc.lag + 
+      cluster(Subject),id=&quot;Subject&quot;,time=&quot;time&quot;,event=&quot;event&quot;,data=Phenobarb.conc,
+      invariant=&quot;Subject&quot;,lagvars=c(&quot;time&quot;,&quot;conc&quot;),maxfu=NULL,lagfirst=0,first=FALSE)
+i$m
+</code></pre>
+
+<pre><code>## Call:
+## coxph(formula = formulaph, data = datacox)
+## 
+##                         coef exp(coef) se(coef) robust se      z       p
+## ApgarInd&gt;= 5        -0.06403   0.93798  0.23155   0.31802 -0.201 0.84044
+## I(conc.lag &gt; 0)TRUE -1.56612   0.20885  0.46931   0.48316 -3.241 0.00119
+## conc.lag            -0.03621   0.96444  0.01703   0.01616 -2.241 0.02504
+## 
+## Likelihood ratio test=62.7  on 3 df, p=1.559e-13
+## n= 155, number of events= 155
+</code></pre>
+
+<pre><code class="r">i &lt;- iiw.weights(Surv(time.lag,time,event)~I(conc.lag&gt;0) + conc.lag + 
+      cluster(Subject),id=&quot;Subject&quot;,time=&quot;time&quot;,event=&quot;event&quot;,data=Phenobarb.conc,
+      invariant=&quot;Subject&quot;,lagvars=c(&quot;time&quot;,&quot;conc&quot;),maxfu=NULL,lagfirst=0,first=FALSE)
+i$m
+</code></pre>
+
+<pre><code>## Call:
+## coxph(formula = formulaph, data = datacox)
+## 
+##                         coef exp(coef) se(coef) robust se      z       p
+## I(conc.lag &gt; 0)TRUE -1.59425   0.20306  0.45904   0.49883 -3.196 0.00139
+## conc.lag            -0.03590   0.96474  0.01699   0.01592 -2.255 0.02413
+## 
+## Likelihood ratio test=62.62  on 2 df, p=2.524e-14
+## n= 155, number of events= 155
+</code></pre>
+
+<p>It thus appears that after accounting for the concentration at the last draw, the other covariates are not important predictors of visit intensity.</p>
+
+<p>Having established a model for the weights, we now turn to modelling the serum concentration as a function of time. A plot of concentration over time shows that the relationship is unlikely to be linear, even in the weighted data. We thus use fractional polynomials to model the shape of the association over time.</p>
+
+<pre><code class="r">plot(Phenobarb$time,Phenobarb$conc,xlim=c(0,200),pch=16)
+</code></pre>
+
+<p><img src="data:image/png;base64,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" title="plot of chunk fig3" alt="plot of chunk fig3" style="display: block; margin: auto;" /></p>
+
+<p>Fractional polynomials consider powers of -2, -1, -0.5, 0.5, 1, 2, 3, and a log-transform, and use the best-fitting from among these. Since weighting tends not to lead to dramatic changes in the \textit{shape} of the relationship between outcome and covariates, we use the unweighted data to choose the functional form of time, and use the adjusted R-squared as a measure of goodness of fit.</p>
+
+<pre><code class="r">rsq1 &lt;- array(dim=8)
+rsq1[1] &lt;- summary(lm(conc~time,data=Phenobarb.conc))$adj.r.squared
+rsq1[2] &lt;- summary(lm(conc~I((time)^0.5),data=Phenobarb.conc))$adj.r.squared
+rsq1[3] &lt;- summary(lm(conc~I((time)^2),data=Phenobarb.conc))$adj.r.squared
+rsq1[4] &lt;- summary(lm(conc~I((time)^3),data=Phenobarb.conc))$adj.r.squared
+rsq1[5] &lt;- summary(lm(conc~log(time),data=Phenobarb.conc))$adj.r.squared
+rsq1[6] &lt;- summary(lm(conc~I((time)^(-0.5)),data=Phenobarb.conc))$adj.r.squared
+rsq1[7] &lt;- summary(lm(conc~I((time)^(-1)),data=Phenobarb.conc))$adj.r.squared
+rsq1[8] &lt;- summary(lm(conc~I((time)^(-2)),data=Phenobarb.conc))$adj.r.squared
+which.max(rsq1)
+</code></pre>
+
+<pre><code>## [1] 5
+</code></pre>
+
+<pre><code class="r">rsq1[which.max(rsq1)]
+</code></pre>
+
+<pre><code>## [1] 0.1687916
+</code></pre>
+
+<p>Based on this, we choose the log transform of time, and now-consider whether a second order fractional polynomial would improve the fit. This involves adding, in turn, each of the powers previously considered, as well as \(time\times\log(time)\).</p>
+
+<pre><code class="r">rsq2 &lt;- array(dim=8)
+rsq2[1] &lt;- summary(lm(conc~log(time)+ time,data=Phenobarb.conc))$adj.r.squared
+rsq2[2] &lt;- summary(lm(conc~log(time)+ I((time)^0.5),data=Phenobarb.conc))$adj.r.squared
+rsq2[3] &lt;- summary(lm(conc~log(time) + I((time)^2),data=Phenobarb.conc))$adj.r.squared
+rsq2[4] &lt;- summary(lm(conc~log(time)+ I((time)^3),data=Phenobarb.conc))$adj.r.squared
+rsq2[5] &lt;- summary(lm(conc~log(time)+ time:log(time),data=Phenobarb.conc))$adj.r.squared
+rsq2[6] &lt;- summary(lm(conc~log(time) + I((time)^(-0.5))*log(1+time),data=Phenobarb.conc))$adj.r.squared
+rsq2[7] &lt;- summary(lm(conc~log(time) + I((time)^(-1)),data=Phenobarb.conc))$adj.r.squared
+rsq2[8] &lt;- summary(lm(conc~log(time)+ I((time)^(-2)),data=Phenobarb.conc))$adj.r.squared
+which.max(rsq2)
+</code></pre>
+
+<pre><code>## [1] 4
+</code></pre>
+
+<pre><code class="r">rsq2[which.max(rsq2)]
+</code></pre>
+
+<pre><code>## [1] 0.3621251
+</code></pre>
+
+<p>We thus use time<sup>3,</sup> log(time) and their interaction to describe concentration over time. The inverse-intensity-weighted GEE can be fitted using the function iiwgee. This function specifies first the formula for the GEE, then the formula for the inverse intensity weights.</p>
+
+<pre><code class="r">iiwgee &lt;- iiwgee(conc ~ I(time^3) + log(time),Surv(time.lag,time,event)~I(conc.lag&gt;0) + conc.lag + cluster(id),
+        formulanull=NULL,id=&quot;id&quot;,time=&quot;time&quot;,event=&quot;event&quot;,data=Phenobarb.conc,
+        invariant=&quot;id&quot;,lagvars=c(&quot;time&quot;,&quot;conc&quot;),maxfu=NULL,lagfirst=0,first=TRUE)
+</code></pre>
+
+<p>Note that the iiwgee function does not include an option for the working variance. As discussed above, when working with inverse-intensity weights, the working variance should always be the identity. The iiwgee function returns the inverse-intensity weighted GEE fit:</p>
+
+<pre><code class="r">summary(iiwgee$geefit)
+</code></pre>
+
+<pre><code>## 
+## Call:
+## geeglm(formula = formulagee, family = family, data = data, weights = useweight, 
+##     id = iddup, corstr = &quot;independence&quot;)
+## 
+##  Coefficients:
+##               Estimate    Std.err  Wald Pr(&gt;|W|)    
+## (Intercept)  1.497e+01  1.550e+00 93.26  &lt; 2e-16 ***
+## I(time^3)   -6.720e-07  9.813e-08 46.89 7.51e-12 ***
+## log(time)    3.973e+00  7.200e-01 30.45 3.43e-08 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Estimated Scale Parameters:
+##             Estimate Std.err
+## (Intercept)    73.62    35.6
+## 
+## Correlation: Structure = independenceNumber of clusters:   59   Maximum cluster size: 6
+</code></pre>
+
+<p>We can also verify that this is the same as deriving the weights through iiw.weights then inputting them as weights into geeglm:</p>
+
+<pre><code class="r">i &lt;- iiw.weights(Surv(time.lag,time,event)~I(conc.lag&gt;0) + conc.lag + 
+      cluster(Subject),id=&quot;id&quot;,time=&quot;time&quot;,event=&quot;event&quot;,data=Phenobarb.conc,
+      invariant=&quot;Subject&quot;,lagvars=c(&quot;time&quot;,&quot;conc&quot;),maxfu=NULL,lagfirst=0,first=TRUE)
+Phenobarb.conc$weight[order(Phenobarb.conc$id)] &lt;- i$iiw.weight
+mw &lt;- geeglm(conc ~ I(time^3) + log(time) , id=Subject, data=Phenobarb.conc, weights=weight)
+summary(mw)
+</code></pre>
+
+<pre><code>## 
+## Call:
+## geeglm(formula = conc ~ I(time^3) + log(time), data = Phenobarb.conc, 
+##     weights = weight, id = Subject)
+## 
+##  Coefficients:
+##              Estimate   Std.err Wald Pr(&gt;|W|)    
+## (Intercept)  1.50e+01  1.55e+00 93.3  &lt; 2e-16 ***
+## I(time^3)   -6.72e-07  9.81e-08 46.9  7.5e-12 ***
+## log(time)    3.97e+00  7.20e-01 30.4  3.4e-08 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Estimated Scale Parameters:
+##             Estimate Std.err
+## (Intercept)     73.6    35.6
+## 
+## Correlation: Structure = independenceNumber of clusters:   59   Maximum cluster size: 6
+</code></pre>
+
+<p>For comparison, we also fit the unweighted GEE, and plot the two serum concentration trajectories</p>
+
+<pre><code class="r">m &lt;- geeglm(conc ~ I(time^3) + log(time) , id=Subject, data=Phenobarb)
+time &lt;- (1:200)
+unweighted &lt;- cbind(rep(1,200),time^3,log(time))%*%m$coefficients
+weighted &lt;- cbind(rep(1,200),time^3,log(time))%*%iiwgee$geefit$coefficients
+plot(Phenobarb$time,Phenobarb$conc,xlim=c(0,200),pch=16,xlab=&quot;Time&quot;,ylab=&quot;Serum phenobarbital concentration&quot;)
+lines(time,unweighted,type=&quot;l&quot;)
+lines(time,weighted,col=2)
+legend (0,60,legend=c(&quot;Unweighted&quot;,&quot;Inverse-intensity weighted&quot;),col=1:2,bty=&quot;n&quot;,lty=1)
+</code></pre>
+
+<p><img src="data:image/png;base64,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" title="plot of chunk fig2" alt="plot of chunk fig2" style="display: block; margin: auto;" /></p>
+
+<p>The iiwgee function also returns the fitted visit intensity model:</p>
+
+<pre><code class="r">summary(iiwgee$phfit)
+</code></pre>
+
+<pre><code>## Call:
+## coxph(formula = formulaph, data = datacox)
+## 
+##   n= 155, number of events= 155 
+## 
+##                        coef exp(coef) se(coef) robust se     z Pr(&gt;|z|)   
+## I(conc.lag &gt; 0)TRUE -1.5943    0.2031   0.4590    0.4988 -3.20   0.0014 **
+## conc.lag            -0.0359    0.9647   0.0170    0.0159 -2.26   0.0241 * 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+##                     exp(coef) exp(-coef) lower .95 upper .95
+## I(conc.lag &gt; 0)TRUE     0.203       4.92    0.0764     0.540
+## conc.lag                0.965       1.04    0.9351     0.995
+## 
+## Concordance= 0.648  (se = 0.015 )
+## Rsquare= 0.332   (max possible= 0.999 )
+## Likelihood ratio test= 62.6  on 2 df,   p=3e-14
+## Wald test            = 40.8  on 2 df,   p=1e-09
+## Score (logrank) test = 61.9  on 2 df,   p=4e-14,   Robust = 52.9  p=3e-12
+## 
+##   (Note: the likelihood ratio and score tests assume independence of
+##      observations within a cluster, the Wald and robust score tests do not).
+</code></pre>
+
+<h2>Multiple Outputation</h2>
+
+<p>Once the inverse-intensity weights have been calculated, an alternative use for them is to perform  multiple outputation. The code below computes 20 outputted datasets, analyses each using an unweighted GEE, then combines the results. </p>
+
+<pre><code class="r">library(geesmv)
+data(Phenobarb)
+Phenobarb$id &lt;- as.numeric(Phenobarb$Subject)
+Phenobarb$event &lt;- as.numeric(is.finite(Phenobarb$conc))
+Phenobarb.conc &lt;- Phenobarb[is.finite(Phenobarb$conc),]
+i &lt;- iiw.weights(Surv(time.lag,time,event)~I(conc.lag&gt;0) + conc.lag + 
+      cluster(id),id=&quot;id&quot;,time=&quot;time&quot;,event=&quot;event&quot;,data=Phenobarb.conc,
+      invariant=&quot;id&quot;,lagvars=c(&quot;time&quot;,&quot;conc&quot;),maxfu=NULL,lagfirst=0,first=FALSE,frailty=FALSE)
+reg &lt;- function(data){
+  est &lt;- geeglm(conc~I(time^3) + log(time), id=id,data=data)$coefficients
+  est &lt;- cbind(est,GEE.var.md(conc~I(time^3) + log(time), id=id,data=data)$cov.beta)
+  est &lt;- data.matrix(est)
+  return(est)
+}
+set.seed(301031)
+m.mogee &lt;- mo(20,reg,Phenobarb.conc,i$iiw.weight, singleobs=FALSE,id=&quot;id&quot;,time=&quot;time&quot;,keep.first=FALSE,var=TRUE)
+m.mogee
+</code></pre>
+
+<p>The multiple outputation estimates of the regression coefficients (<code>$est</code>), and is the mean across outputations of the GEE estimates. The multiple outputation standard error (<code>$se</code>) is a function of both the within outputation standard errors and the between outputation variance. The relative efficiency of using 20 outputations in place of all possible outputations is given by <code>RE.MO</code>. In this example the number of subjects becomes small on outputation, resulting in the usual sandwich variance estimator for the GEE underestimating the standard error. For this reason, we use a small sample  sandwich variance correction from the &ldquo;geesmv&rdquo; package. There are a number of options available, and in this example we have used the Mancl deRouen correction [ref]. The multiple outputation estimates based on the above seed were 17.4 (SE 2.13), 5.73e-08 (SE 9.95e-07) and 2.88(SE 6.61) for the intercept, \(time^3\), and \(\log(time)\) respectively. The relative efficiencies were 1.05, 1.09, and 1.13, suggesting that the standard errors could be slightly reduced by running more outputations.</p>
+
+<p>Multiple outputation is helpful for analyses where weighting is difficult to implement. One such example is a semi-parametric joint model. Semi-parametric joint models are useful when there are latent variables that influence both the outcome and visit processes. We consider the Liang [@Liang2009] semi-parametric joint model:
+\[Y_i(t)=\beta_0(t) + X_i(t)\beta + W_i(t)\nu_{i1} + \epsilon_i(t) \]
+\[\lambda_i(t)=\nu_{i2}\lambda_0(t)\exp(U_i\gamma) \]
+where \(W_i(t)\) is a subset of the covariates \(X_i(t)\), \(U_i\) is a vector of baseline covariates, \(\epsilon_i(t)\) is a mean-zero random error, and \(\nu_{i1}\), \(\nu_{i2}\) are (potentially correlated) random effects.</p>
+
+<p>The Liang model requires that the covariates in the model for the visits be time invariant. In practice,
+\[\lambda_i(t)=\nu_{i2}\lambda_0(t)\exp(Z_i(t)\gamma), \]
+for an observed vector of time-dependent auxiliary covariates \(Z_i(t)\) may be more reasonable. Multiple outputation makes inference under this model possible by creating outputted datasets in which the visit process does not depend on the observed covariates \(Z_i(t)\). These datasets can be analysed using Liang&#39;s method for the special case where there are no covariates in the visit process model.</p>
+
+<h3>Example</h3>
+
+<p>We consider the same example as before, now examining whether the concentration differs between those with an Apgar score <5 at birth and those with a score >=5, and allowing a random intercept that is potentially correlated with a frailty variable in the visit process. That is, we take
+\[conc_i(t)=\beta_0(t) + \beta_1I(Apgar_i<5) + \beta_2I(Apgar\geq 5)t^3 + \beta_3I(Apgar\geq 5)log(t) +  \nu_{i1} + \epsilon_i(t),\]
+with visit process model given by
+\[\lambda_i(t)=\nu_{i2}\lambda_0(t)\exp(I(conc_i(T_{iN_i(t^-)})>0)\gamma_1 + conc_i(T_{iN_i(t^-)})\gamma_2), \]
+where \(\nu_{i1}=(\nu_{i11},\nu_{i12})^\prime\) and \(\nu_{i2}\) are potentially correlated. Note that when calculating the weights used for outputation, the <code>frailty=TRUE</code> option should be used in visit intensity calculation because the lagged concentration is an internal covariate that is potentially correlated with the frailty variable, and the Cox model is non-collapsible. A difficulty with using multiple outputation is that it reduces the size of the dataset available for each analysis, which can result in singularities in regression models. In this example, some outputted datasets have no subjects with an Apgar score less than 5, and hence the regression model cannot be fitted. A pragmatic work-around is to truncate the weights - this introduces some bias but results in a higher proportion of observations being retained at each outputation and consequently a smaller chance of singularities. In this example we truncate at 15, resulting in 26 of the 155 weights being truncated.</p>
+
+<pre><code class="r">data(Phenobarb)
+Phenobarb$id &lt;- as.numeric(Phenobarb$Subject)
+Phenobarb$event &lt;- as.numeric(is.finite(Phenobarb$conc))
+Phenobarb.conc &lt;- Phenobarb[is.finite(Phenobarb$conc),]
+i &lt;- iiw.weights(Surv(time.lag,time,event)~I(conc.lag&gt;0) + conc.lag + 
+        cluster(id),id=&quot;id&quot;,time=&quot;time&quot;,event=&quot;event&quot;,data=Phenobarb.conc,
+        invariant=&quot;id&quot;,lagvars=c(&quot;time&quot;,&quot;conc&quot;),maxfu=NULL,lagfirst=0,first=FALSE,
+        frailty=TRUE)
+</code></pre>
+
+<pre><code>## Warning in frailtyPenal(formula = formulaph, data = datacox[use, ],
+## recurrentAG = TRUE, : NAs introduced by coercion
+</code></pre>
+
+<pre><code class="r">summary(i$iiw.weight)
+sum(i$iiw.weight&gt;15)
+Liangmo &lt;- function(data,Yname,Xnames,Wnames,maxfu,baseline){
+ x &lt;- Liang(data,Yname,Xnames,Wnames,id=&quot;id&quot;,time=&quot;time&quot;,maxfu,baseline); print(x); return(x)
+}
+Phenobarb.conc$Intercept &lt;- 1
+Phenobarb.conc$time3 &lt;- Phenobarb.conc$time^3
+Phenobarb.conc$logtime &lt;- log(Phenobarb.conc$time)
+Phenobarb.conc$ApgarInd.time3 &lt;- as.numeric(Phenobarb.conc$ApgarInd)*(Phenobarb.conc$time^3)
+Phenobarb.conc$ApgarInd.logtime &lt;- as.numeric(Phenobarb.conc$ApgarInd)*log(Phenobarb.conc$time)
+weightstrunc &lt;- i$iiw.weight
+weightstrunc[weightstrunc&gt;15] &lt;- 15
+set.seed(301031)
+m.moLiang &lt;- mo(20,Liangmo,Phenobarb.conc,weightstrunc, 
+        singleobs=FALSE,id=&quot;id&quot;,time=&quot;time&quot;,keep.first=FALSE,var=FALSE,Yname=&quot;conc&quot;,
+        Xnames=c(&quot;ApgarInd&quot;,&quot;ApgarInd.time3&quot;,&quot;ApgarInd.logtime&quot;), 
+        Wnames=c(&quot;Intercept&quot;),maxfu=1000,baseline=0)
+</code></pre>
+
+<pre><code class="r">m.moLiang$est
+</code></pre>
+
+<pre><code>## [1]  1.43e+00 -4.68e-08  1.70e-02
+</code></pre>
+
+<p>For comparison, we also compute the estimate assuming that the measurement and outcome processes are independent given the last observed concentration, and plot the two curves. </p>
+
+<pre><code class="r">miiwgee &lt;- geeglm(conc ~ ApgarInd *(time3 + log(time)),id=id,weight=weightstrunc,data=Phenobarb.conc)
+
+summary(miiwgee)
+</code></pre>
+
+<pre><code>## 
+## Call:
+## geeglm(formula = conc ~ ApgarInd * (time3 + log(time)), data = Phenobarb.conc, 
+##     weights = weightstrunc, id = id)
+## 
+##  Coefficients:
+##                         Estimate   Std.err  Wald Pr(&gt;|W|)    
+## (Intercept)             2.07e+01  3.16e+00 42.84  5.9e-11 ***
+## ApgarInd&gt;= 5           -4.07e+00  3.41e+00  1.43   0.2316    
+## time3                   2.59e-06  1.13e-06  5.25   0.0219 *  
+## log(time)               9.62e-01  6.43e-01  2.24   0.1347    
+## ApgarInd&gt;= 5:time3     -3.16e-06  1.13e-06  7.75   0.0054 ** 
+## ApgarInd&gt;= 5:log(time)  2.15e+00  7.86e-01  7.50   0.0062 ** 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Estimated Scale Parameters:
+##             Estimate Std.err
+## (Intercept)     50.1      17
+## 
+## Correlation: Structure = independenceNumber of clusters:   59   Maximum cluster size: 6
+</code></pre>
+
+<pre><code class="r">time &lt;- (1:200)
+gp0 &lt;- cbind(rep(1,200),time^3,log(time))%*%miiwgee$coefficients[c(1,3:4)]
+gp1 &lt;- cbind(rep(1,200),time^3,log(time))%*%(miiwgee$coefficients[c(2,5:6)] + miiwgee$coefficients[c(1,3:4)])
+diffLiang &lt;- cbind(rep(1,200),time^3,log(time))%*%(m.moLiang$est)
+plot(time,gp1-gp0,xlab=&quot;Time&quot;,ylab=&quot;Difference in means&quot;,type=&quot;l&quot;,ylim=c(min(gp1-gp0,diffLiang),max(gp1-gp0,diffLiang)))
+lines(time,diffLiang,col=2)
+legend(110,-8,legend=c(&quot;IIW estimate&quot;,&quot;MO + Liang estimate&quot;),lty=1,col=1:2,bty=&quot;n&quot;)
+</code></pre>
+
+<p><img src="data:image/png;base64,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" title="plot of chunk fig4" alt="plot of chunk fig4" style="display: block; margin: auto;" /></p>
+
+<p>Note that the Liang method does not provide theoretical standard errors, so these are usually estimated through bootstrapping.</p>
+
+<h1>References</h1>
+
+</body>
+
+</html>
