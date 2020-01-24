@@ -4,8 +4,21 @@
 \alias{iiwgee}
 \title{Fit an inverse-intensity weighted GEE.}
 \usage{
-iiwgee(formulagee, formulaph, formulanull = NULL, data, id, time, event,
-  family = gaussian, lagvars, invariant, maxfu, lagfirst = NA, first)
+iiwgee(
+  formulagee,
+  formulaph,
+  formulanull = NULL,
+  data,
+  id,
+  time,
+  event,
+  family = gaussian,
+  lagvars,
+  invariant = NULL,
+  maxfu,
+  lagfirst,
+  first
+)
 }
 \arguments{
 \item{formulagee}{the formula for the GEE model to be fit. The syntax used is the same as in geeglm}
@@ -30,7 +43,7 @@ iiwgee(formulagee, formulaph, formulanull = NULL, data, id, time, event,
 
 \item{maxfu}{the maximum follow-up time(s). If everyone is followed for the same length of time, this can be given as a single value. If individuals have different follow-up times, maxfu should have the same number of elements as there are rows of data}
 
-\item{lagfirst}{The value of the lagged variable for the first time within each subject. This is helpful if, for example, time is the variable to be lagged and you know that all subjects entered the study at time zero}
+\item{lagfirst}{A vector giving the value of each lagged variable for the first time within each subject. This is helpful if, for example, time is the variable to be lagged and you know that all subjects entered the study at time zero}
 
 \item{first}{logical variable. If TRUE, the first observation for each individual is assigned an intensity of 1. This is appropriate if the first visit is a baseline visit at which recruitment to the study occurred; in this case the baseline visit is observed with probability 1.}
 }
@@ -51,22 +64,28 @@ library(nlme)
 data(Phenobarb)
 library(survival)
 library(geepack)
-Phenobarb$id <- as.numeric(Phenobarb$Subject)
-Phenobarb$event <- as.numeric(is.finite(Phenobarb$conc))
-Phenobarb.conc <- Phenobarb[is.finite(Phenobarb$conc),]
-miiwgee <- iiwgee(conc ~ time*log(time),
-Surv(time.lag,time,event)~I(conc.lag>0) + conc.lag + cluster(id),
-formulanull=NULL,id="id",time="time",event="event",data=Phenobarb.conc,invariant="id",
-lagvars=c("time","conc"),maxfu=NULL,lagfirst=0,first=TRUE)
+Phenobarb$event <- 1-as.numeric(is.na(Phenobarb$conc))
+data <- lagfn(Phenobarb, lagvars="dose", id="Subject", time="time", lagfirst = 0)
+data <- lagfn(data, lagvars="dose.lag", id="Subject", time="time", lagfirst = 0)
+data <- lagfn(data, lagvars="dose.lag.lag", id="Subject", time="time", lagfirst = 0)
+data$dose.lag[is.na(data$dose.lag)] <- data$dose.lag.lag[is.na(data$dose.lag)]
+data$dose.lag[is.na(data$dose.lag)] <- data$dose.lag.lag.lag[is.na(data$dose.lag)]
+data <- data[data$event==1,]
+data$id <- as.numeric(data$Subject)
+data <- data[data$time<16*24,]
+miiwgee <- iiwgee(conc ~ I(time^3) + log(time),Surv(time.lag,time,event)~Wt *dose.lag +
+dose.lag*(I(conc.lag>0) + conc.lag) +cluster(Subject),
+formulanull=NULL,id="id",time="time",event="event",data=data,
+invariant="id",lagvars=c("time","conc"),maxfu=16*24,lagfirst=0,first=TRUE)
 summary(miiwgee$geefit)
 summary(miiwgee$phfit)
 
 # compare to results without weighting
-m <- geeglm(conc ~ time*log(time) , id=Subject, data=Phenobarb); print(summary(m))
+m <- geeglm(conc ~ I(time^3) + log(time) , id=Subject, data=data); print(summary(m))
 time <- (1:200)
-unweighted <- cbind(rep(1,200),time,log(time),time*log(time))\%*\%m$coefficients
-weighted <- cbind(rep(1,200),time,log(time),time*log(time))\%*\%miiwgee$geefit$coefficients
-plot(Phenobarb$time,Phenobarb$conc,xlim=c(0,200),pch=16)
+unweighted <- cbind(rep(1,200),time^3,log(time))\%*\%m$coefficients
+weighted <- cbind(rep(1,200),time^3,log(time))\%*\%miiwgee$geefit$coefficients
+plot(data$time,data$conc,xlim=c(0,200),pch=16)
 lines(time,unweighted,type="l")
 lines(time,weighted,col=2)
 legend (0,60,legend=c("Unweighted","Inverse-intensity weighted"),col=1:2,bty="n",lty=1)
@@ -77,6 +96,8 @@ legend (0,60,legend=c("Unweighted","Inverse-intensity weighted"),col=1:2,bty="n"
 \item Buzkova P, Lumley T. Longitudinal data analysis for generalized linear models with follow-up dependent on outcome-related variables. The Canadian Journal of Statistics 2007; 35:485-500.}
 }
 \seealso{
-Other iiw: \code{\link{iiw.weights}}, \code{\link{iiw}}
+Other iiw: 
+\code{\link{iiw.weights}()},
+\code{\link{iiw}()}
 }
 \concept{iiw}
