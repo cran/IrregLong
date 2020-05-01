@@ -4,6 +4,7 @@ library(MEMSS)
 library(survival)
 library(geepack)
 library(frailtypack)
+library(data.table)
 
 ## -----------------------------------------------------------------------------
 data(Phenobarb)
@@ -23,6 +24,13 @@ head(data)
 summary(tapply(data$event,data$Subject,sum))
 abacus.plot(n=59,time="time",id="Subject",data=data,tmin=0,tmax=16*24,
  xlab.abacus="Time in hours",pch=16,col.abacus=gray(0.8))
+
+## ----fig.width=8, fig.height=12-----------------------------------------------
+counts <- extent.of.irregularity(data,time="time",id="id",
+  scheduledtimes=NULL, cutpoints=NULL,ncutpts=50, maxfu=16*24,
+  plot=TRUE,legendx=30,legendy=0.8,
+ formula=Surv(time.lag,time,event)~1,tau=16*24)
+ counts$auc
 
 ## -----------------------------------------------------------------------------
 i <- iiw.weights(Surv(time.lag,time,event)~Wt + Apgar + I(conc.lag>0) + conc.lag + dose.lag +
@@ -161,7 +169,14 @@ summary(iiwgee$phfit)
 
 Liangmo <- function(data,Yname,Xnames,Wnames,maxfu,baseline){
  x <- Liang(data=data,Yname=Yname,Xnames=Xnames,Wnames=Wnames,id="id",time="time",
-            maxfu=maxfu,baseline=baseline); print(x); return(x)
+            maxfu=maxfu,baseline=baseline,Xfn=Xfn,Wfn=Wfn); print(x); return(x)
+}
+Xfn <- function(id,time){
+  # Group is time invariant so just use the first value for each subject
+  return(as.numeric(data$ApgarInd[data$id==id][1]))
+}
+Wfn <- function(id,time){
+  return(c(1,time))
 }
 data$Intercept <- 1
 data$time3 <- (data$time)^3
@@ -187,17 +202,4 @@ m.moLiang$est
 
 ## -----------------------------------------------------------------------------
 m.moLiang$est
-
-## ----fig4, fig.height=6, fig.width=6, fig.align="center"----------------------
-miiwgee <- geeglm(conc ~ ApgarInd *(time + time3),id=id,weight=wt,data=data)
-
-summary(miiwgee)
-time <- (1:200)
-gp0 <- cbind(rep(1,200),time,time^3)%*%miiwgee$coefficients[c(1,3:4)]
-gp1 <- cbind(rep(1,200),time,time^3)%*%(miiwgee$coefficients[c(2,5:6)] + miiwgee$coefficients[c(1,3:4)])
-diffLiang <- cbind(rep(1,200),time/24,(time/24)^3)%*%(m.moLiang$est)
-plot(time,gp1-gp0,xlab="Time",ylab="Difference in means",type="l",ylim=c(min(gp1-gp0,diffLiang),max(gp1-gp0,diffLiang)))
-lines(time,diffLiang,col=2)
-legend(10,-3,legend=c("IIW estimate","MO + Liang estimate"),lty=1,col=1:2,bty="n")
-
 
