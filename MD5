@@ -1,11 +1,11 @@
-6f00bf5bfa076b5c76bb4af6fbae73c2 *DESCRIPTION
+9296a5957cba9868b621311aaf8fede5 *DESCRIPTION
 27b4d02a499e2ab72de60f27645e176e *NAMESPACE
-0214a39266cd5a44e338f90c60f8f2be *R/IIWcode.R
+ed7ed6927f8ec57fae02bd9f8e78f506 *R/IIWcode.R
 90df6c330639f9404d3d85e6b50e9737 *build/vignette.rds
 603c0a7ae0a742bc913a62c37631d286 *inst/doc/Irreglong-vignette.R
-fe44fade0da7b7fbf730b2e3fbf607a7 *inst/doc/Irreglong-vignette.Rmd
-82117c81787e5644bb7f580d00001213 *inst/doc/Irreglong-vignette.html
-c8d2cffce2307c6a4c7570d8315673c7 *man/Liang.Rd
+9802be6893bee82fec80502d43eeb038 *inst/doc/Irreglong-vignette.Rmd
+d49b473dd439f0e0016db858a4ee267a *inst/doc/Irreglong-vignette.html
+8d6967e0195b87eeabe7cb77489388b1 *man/Liang.Rd
 15983ee202426238bf53b2992ee38085 *man/abacus.plot.Rd
 1c50d4ccf563f2d8038542aa3eb2ab73 *man/addcensoredrows.Rd
 50eb981c29b094bcfcba44fd5a010ed2 *man/extent.of.irregularity.Rd
@@ -16,5 +16,5 @@ f90d6b72669a4c65f19d168bfd113db7 *man/lagfn.Rd
 3945b3d5fe2b550b89be0229a61c9bc2 *man/mo.Rd
 05cc5826a96ae73e1fbe5d3611d77246 *man/outputation.Rd
 ad52f4311cf282505802ab9c32aeed0b *vignettes/IrregLongVignetteRefs.bib
-fe44fade0da7b7fbf730b2e3fbf607a7 *vignettes/Irreglong-vignette.Rmd
+9802be6893bee82fec80502d43eeb038 *vignettes/Irreglong-vignette.Rmd
 a1a41a615d43b36fd3aad1de9d7186ff *vignettes/vignette.pdf
