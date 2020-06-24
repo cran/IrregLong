@@ -9,11 +9,7 @@ library(data.table)
 ## -----------------------------------------------------------------------------
 data(Phenobarb)
 Phenobarb$event <- 1-as.numeric(is.na(Phenobarb$conc))
-data <- lagfn(Phenobarb, lagvars="dose", id="Subject", time="time", lagfirst = 0)
-data <- lagfn(data, lagvars="dose.lag", id="Subject", time="time", lagfirst = 0)
-data <- lagfn(data, lagvars="dose.lag.lag", id="Subject", time="time", lagfirst = 0)
-data$dose.lag[is.na(data$dose.lag)] <- data$dose.lag.lag[is.na(data$dose.lag)]
-data$dose.lag[is.na(data$dose.lag)] <- data$dose.lag.lag.lag[is.na(data$dose.lag)]
+data <- Phenobarb
 data <- data[data$event==1,]
 data$id <- as.numeric(data$Subject)
 data <- data[data$time<16*24,]
@@ -27,47 +23,35 @@ abacus.plot(n=59,time="time",id="Subject",data=data,tmin=0,tmax=16*24,
 
 ## ----fig.width=8, fig.height=12-----------------------------------------------
 counts <- extent.of.irregularity(data,time="time",id="id",
-  scheduledtimes=NULL, cutpoints=NULL,ncutpts=50, maxfu=16*24,
-  plot=TRUE,legendx=30,legendy=0.8,
+  scheduledtimes=NULL, cutpoints=NULL,ncutpts=50, 
+  maxfu=16*24, plot=TRUE,legendx=30,legendy=0.8,
  formula=Surv(time.lag,time,event)~1,tau=16*24)
  counts$auc
 
 ## -----------------------------------------------------------------------------
-i <- iiw.weights(Surv(time.lag,time,event)~Wt + Apgar + I(conc.lag>0) + conc.lag + dose.lag +
+data$Apgar <- as.numeric(data$Apgar)
+i <- iiw.weights(Surv(time.lag,time,event)~Wt + Apgar + 
+                   I(conc.lag>0 & conc.lag<=20) + 
+                I(conc.lag>20 & conc.lag<=30) + I(conc.lag>30)+
       cluster(Subject),id="Subject",time="time",event="event",data=data,
-      invariant="Subject",lagvars=c("time","conc"),maxfu=16*24,lagfirst=c(0,0),first=FALSE)
+      invariant=c("Subject","Wt","Apgar"),lagvars=c("time","conc"),maxfu=16*24,
+      lagfirst=c(0,0),first=FALSE)
 i$m
+ 
 
 ## -----------------------------------------------------------------------------
-i <- iiw.weights(Surv(time.lag,time,event)~Wt + ApgarInd + I(conc.lag>0) + conc.lag + dose.lag +
+i <- iiw.weights(Surv(time.lag,time,event)~Wt + ApgarInd + I(conc.lag>0 & conc.lag<=20) + 
+                I(conc.lag>20 & conc.lag<=30) + I(conc.lag>30)+ 
+      cluster(Subject),id="Subject",time="time",event="event",data=data,
+      invariant=c("Subject","Wt","ApgarInd"),lagvars=c("time","conc"), maxfu=16*24,lagfirst=c(0,0),first=FALSE)
+i$m
+i <- iiw.weights(Surv(time.lag,time,event)~Wt + I(conc.lag>0 & conc.lag<=20) + 
+                I(conc.lag>20 & conc.lag<=30) + I(conc.lag>30)+ 
       cluster(Subject),id="Subject",time="time",event="event",data=data,
       invariant=c("Subject","Wt"),lagvars=c("time","conc"),maxfu=16*24,lagfirst=c(0,0),first=FALSE)
 i$m
-i <- iiw.weights(Surv(time.lag,time,event)~Wt + I(conc.lag>0) + conc.lag + dose.lag +
-      cluster(Subject),id="Subject",time="time",event="event",data=data,
-      invariant=c("Subject","Wt"),lagvars=c("time","conc"),maxfu=16*24,lagfirst=c(0,0),first=FALSE)
-i$m
-i <- iiw.weights(Surv(time.lag,time,event)~Wt + I(conc.lag>0) + conc.lag + dose.lag +          I(dose.lag*Wt^(-1)) + cluster(Subject),
-                 id="Subject",time="time",event="event",data=data,
-      invariant=c("Subject","Wt"),lagvars=c("time","conc"),maxfu=16*24,lagfirst=c(0,0),first=FALSE)
-i$m
-i <- iiw.weights(Surv(time.lag,time,event)~Wt + I(conc.lag>0) + conc.lag + sqrt(dose.lag/Wt) +
-      cluster(Subject),id="Subject",time="time",event="event",data=data,
-      invariant=c("Subject","Wt"),lagvars=c("time","conc"),maxfu=16*24,lagfirst=c(0,0),first=FALSE)
-i$m
-i <- iiw.weights(Surv(time.lag,time,event)~Wt + I(conc.lag>0) + conc.lag + log(1+dose.lag/Wt) +
-      cluster(Subject),id="Subject",time="time",event="event",data=data,
-      invariant=c("Subject","Wt"),lagvars=c("time","conc"),maxfu=16*24,lagfirst=c(0,0),first=FALSE)
-i$m
-i <- iiw.weights(Surv(time.lag,time,event)~Wt *( I(conc.lag>0) + conc.lag) + log(1+dose.lag/Wt) +
-      cluster(Subject),id="Subject",time="time",event="event",data=data,
-      invariant=c("Subject","Wt"),lagvars=c("time","conc"),maxfu=16*24,lagfirst=c(0,0),first=FALSE)
-i$m
-i <- iiw.weights(Surv(time.lag,time,event)~Wt + log(1+dose.lag/Wt) + log(1+dose.lag/Wt)*(I(conc.lag>0) + conc.lag) +
-      cluster(Subject),id="Subject",time="time",event="event",data=data,
-      invariant=c("Subject","wt"),lagvars=c("time","conc"),maxfu=16*24,lagfirst=c(0,0),first=FALSE)
-i$m
-i <- iiw.weights(Surv(time.lag,time,event)~I(conc.lag>0) + log(1+dose.lag/Wt) + log(1+dose.lag/Wt)*conc.lag +
+i <- iiw.weights(Surv(time.lag,time,event)~I(conc.lag>0 & conc.lag<=20) + 
+                I(conc.lag>20 & conc.lag<=30) + I(conc.lag>30) + 
       cluster(Subject),id="Subject",time="time",event="event",data=data,
       invariant=c("Subject","Wt"),lagvars=c("time","conc"),maxfu=16*24,lagfirst=c(0,0),first=FALSE)
 i$m
@@ -129,7 +113,8 @@ rsq1[which.max(rsq1)]
 
 ## -----------------------------------------------------------------------------
 
-iiwgee <- iiwgee(conc ~ time + I(time^3) + log(time),Surv(time.lag,time,event)~I(conc.lag>0) + log(1+dose.lag/Wt) + log(1+dose.lag/Wt)*conc.lag + +cluster(id),
+iiwgee <- iiwgee(conc ~ time + I(time^3) + log(time),Surv(time.lag,time,event)~I(conc.lag>0 & conc.lag<=20) + 
+                I(conc.lag>20 & conc.lag<=30) + I(conc.lag>30) +cluster(id),
         formulanull=NULL,id="id",time="time",event="event",data=data,
         invariant=c("id","Wt"),lagvars=c("time","conc"),maxfu=16*24,lagfirst=c(0,0),first=FALSE)
 
@@ -185,14 +170,14 @@ data$ApgarInd.time <- as.numeric(data$ApgarInd)*data$time/24
 data$ApgarInd.time3 <- as.numeric(data$ApgarInd)*((data$time/24)^3)
 
 set.seed(301031)
-ifrailty <- iiw.weights(Surv(time.lag,time,event)~Wt + I(conc.lag>0) + conc.lag +
-                      I(log(1+dose.lag/Wt)) + I(log(1+dose.lag/Wt)):conc.lag    
+ifrailty <- iiw.weights(Surv(time.lag,time,event)~I(conc.lag>0 & conc.lag<=20) + 
+                I(conc.lag>20 & conc.lag<=30) + I(conc.lag>30)   
                       +cluster(id),id="id",time="time",event="event",data=data,     
-                      invariant=c("id","Wt"),lagvars=c("time","conc"),maxfu=16*24,
+                      invariant=c("id"),lagvars=c("time","conc"),maxfu=16*24,
                       lagfirst=c(0,0), first=FALSE,frailty=TRUE)
 
 wt <- ifrailty$iiw.weight
-wt[wt>quantile(ifrailty$iiw.weight,0.95)] <- quantile(ifrailty$iiw.weight,0.95)
+
 m.moLiang <- mo(20,Liangmo,data,wt, 
          singleobs=FALSE,id="id",time="time",keep.first=FALSE,var=FALSE,Yname="conc",
          Xnames=c("ApgarInd","ApgarInd.time","ApgarInd.time3"), 

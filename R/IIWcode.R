@@ -34,8 +34,6 @@ lagby1.1var <- function(x,id,time,lagfirst=NA){
 
 
 
-# data must be ordered by id and time.
-# id variable should be called id, time variable should be called time
 
 #' Create lagged versions the variables in data
 #'
@@ -57,7 +55,6 @@ lagby1.1var <- function(x,id,time,lagfirst=NA){
 
 lagfn <- function(data,lagvars,id,time,lagfirst=NA){
 
-#	lagged <- sapply(data[,columns],lagby1.1var,data[,names(data)%in%id],data[,names(data)%in%time])
   columns <- (1:ncol(data))[is.finite(match(names(data), lagvars))]
   for(col in 1:length(columns)){
   	if(col==1) lagged <- lagby1.1var(x=data[,columns[col]],id=data[,names(data)%in%id],time=data[,names(data)%in%time],lagfirst=lagfirst[col])
@@ -106,30 +103,37 @@ addcensoredrows <- function(data,maxfu,tinvarcols,id,time,event){
 
   data <- data[order(data[,names(data)%in%id],data[,names(data)%in%time]),]
 
+  # extrarows are the rows corresponding to the times at which each individual was censored
   extrarows <- array(dim=c(length(table(data[,names(data)%in%id])),ncol(data)))
   extrarows <- as.data.frame(extrarows)
   names(extrarows) <- names(data)
 
+
   DT <- data.table(data)
   setkey(DT, id)
 
+  # derive time-invariant covariates for each subject, and add to extrarows
   dt1 <- data.frame(DT[data.table(unique(id)), mult = "first"])
   extrarows[,tinvarcols] <- dt1[,tinvarcols]
   extrarows[,names(data)%in%id] <- dt1[,names(dt1)%in%id]
+
+  # time and event variables for extrarows
   extrarows[,names(data)%in%time] <- maxfu
   extrarows[,names(data)%in%event] <- 0
 
+  # check whether there was an observation at maxfu - do not include in extrarows if so
   maxobstime <- tapply(data[,names(data)%in%time],data[,names(data)%in%id],max)
   alreadythere <- sapply(maxobstime-maxfu,identical,0)
   extrarows <- extrarows[!alreadythere,]
 
+  # add extrarows to data
   data <- rbind(data.matrix(data),data.matrix(extrarows))
   data <- as.data.frame(data)
   data <- data[order(data[,names(data)%in%id],data[,names(data)%in%time]),]
   return(data)
 }
 
-# assumes no missing data
+# fit a proportional hazards model and compute the stabilized inverse intensity weights
 phfn <- function(datacox,regcols,data){
 	X <- datacox[,regcols]
 	datacox <- datacox[is.finite(datacox$time.lag),]
@@ -161,18 +165,15 @@ phfn <- function(datacox,regcols,data){
 #' library(geepack)
 #' data(Phenobarb)
 #' Phenobarb$event <- 1-as.numeric(is.na(Phenobarb$conc))
-#' data <- lagfn(Phenobarb, lagvars="dose", id="Subject", time="time", lagfirst = 0)
-#' data <- lagfn(data, lagvars="dose.lag", id="Subject", time="time", lagfirst = 0)
-#' data <- lagfn(data, lagvars="dose.lag.lag", id="Subject", time="time", lagfirst = 0)
-#' data$dose.lag[is.na(data$dose.lag)] <- data$dose.lag.lag[is.na(data$dose.lag)]
-#' data$dose.lag[is.na(data$dose.lag)] <- data$dose.lag.lag.lag[is.na(data$dose.lag)]
+#' data <- Phenobarb
 #' data <- data[data$event==1,]
 #' data$id <- as.numeric(data$Subject)
 #' data <- data[data$time<16*24,]
 #' data <- lagfn(data, lagvars=c("time","conc"), id="Subject", time="time", lagfirst = NA)
 #' head(data)
 #'
-#' mph <- coxph(Surv(time.lag,time,event)~I(conc.lag>0) + conc.lag + cluster(id),data=data)
+#' mph <- coxph(Surv(time.lag,time,event)~I(conc.lag>0 & conc.lag<=20) + I(conc.lag>20 & conc.lag<=30)
+#'  + I(conc.lag>30)+ cluster(id),,data=data)
 #' summary(mph)
 #' data$weight <- iiw(mph,data,"id","time",TRUE)
 #' head(data)
@@ -220,17 +221,14 @@ iiw <- function(phfit,data,id,time,first){
 #' library(survival)
 #' library(geepack)
 #' Phenobarb$event <- 1-as.numeric(is.na(Phenobarb$conc))
-#' data <- lagfn(Phenobarb, lagvars="dose", id="Subject", time="time", lagfirst = 0)
-#' data <- lagfn(data, lagvars="dose.lag", id="Subject", time="time", lagfirst = 0)
-#' data <- lagfn(data, lagvars="dose.lag.lag", id="Subject", time="time", lagfirst = 0)
-#' data$dose.lag[is.na(data$dose.lag)] <- data$dose.lag.lag[is.na(data$dose.lag)]
-#' data$dose.lag[is.na(data$dose.lag)] <- data$dose.lag.lag.lag[is.na(data$dose.lag)]
+#' data <- Phenobarb
 #' data <- data[data$event==1,]
 #' data$id <- as.numeric(data$Subject)
 #' data <- data[data$time<16*24,]
-#' miiwgee <- iiwgee(conc ~ I(time^3) + log(time),Surv(time.lag,time,event)~Wt *dose.lag +
-#' dose.lag*(I(conc.lag>0) + conc.lag) +cluster(Subject),
-#' formulanull=NULL,id="id",time="time",event="event",data=data,
+#' miiwgee <- iiwgee(conc ~ I(time^3) + log(time),
+#' Surv(time.lag,time,event)~I(conc.lag>0 & conc.lag<=20) +
+#' I(conc.lag>20 & conc.lag<=30) + I(conc.lag>30)+ cluster(id),
+#' id="id",time="time",event="event",data=data,
 #' invariant="id",lagvars=c("time","conc"),maxfu=16*24,lagfirst=0,first=TRUE)
 #' summary(miiwgee$geefit)
 #' summary(miiwgee$phfit)
@@ -296,33 +294,34 @@ iiwgee <- function(formulagee,formulaph,formulanull=NULL,data,id,time,event,fami
 #' library(survival)
 #' library(geepack)
 #' Phenobarb$event <- 1-as.numeric(is.na(Phenobarb$conc))
-#' data <- lagfn(Phenobarb, lagvars="dose", id="Subject", time="time", lagfirst = 0)
-#' data <- lagfn(data, lagvars="dose.lag", id="Subject", time="time", lagfirst = 0)
-#' data <- lagfn(data, lagvars="dose.lag.lag", id="Subject", time="time", lagfirst = 0)
-#' data$dose.lag[is.na(data$dose.lag)] <- data$dose.lag.lag[is.na(data$dose.lag)]
-#' data$dose.lag[is.na(data$dose.lag)] <- data$dose.lag.lag.lag[is.na(data$dose.lag)]
+#' data <- Phenobarb
 #' data <- data[data$event==1,]
 #' data$id <- as.numeric(data$Subject)
 #' data <- data[data$time<16*24,]
-#' i <- iiw.weights(Surv(time.lag,time,event)~Wt *dose.lag + dose.lag*(I(conc.lag>0) + conc.lag) +
-#' cluster(Subject),id="id",time="time",event="event",data=data,
-#' invariant="Subject",lagvars=c("time","conc"),maxfu=16*24,lagfirst=0,first=TRUE)
+#' i <- iiw.weights(Surv(time.lag,time,event)~I(conc.lag>0 & conc.lag<=20) +
+#' I(conc.lag>20 & conc.lag<=30) + I(conc.lag>30)+ cluster(id),
+#' id="id",time="time",event="event",data=data,
+#' invariant="id",lagvars=c("time","conc"),maxfu=16*24,lagfirst=0,first=TRUE)
 #' data$weight <- i$iiw.weight
 #' summary(i$m)
 #' # can use to fit a weighted GEE
 #' mw <- geeglm(conc ~ I(time^3) + log(time) , id=Subject, data=data, weights=weight)
 #' summary(mw)
 #' # agrees with results through the single command iiwgee
-#' miiwgee <- iiwgee(conc ~ I(time^3) + log(time),Surv(time.lag,time,event)~Wt *dose.lag +
-#' dose.lag*(I(conc.lag>0) + conc.lag) +cluster(Subject),
-#' formulanull=NULL,id="id",time="time",event="event",data=data,
+#' miiwgee <- iiwgee(conc ~ I(time^3) + log(time),
+#' Surv(time.lag,time,event)~I(conc.lag>0 & conc.lag<=20) +
+#' I(conc.lag>20 & conc.lag<=30) + I(conc.lag>30)+ cluster(id),
+#' id="id",time="time",event="event",data=data,
 #' invariant="id",lagvars=c("time","conc"),maxfu=16*24,lagfirst=0,first=TRUE)
 #' summary(miiwgee$geefit)
 #' @family iiw
 #' @export
 
 iiw.weights <- function(formulaph,formulanull=NULL,data,id,time,event,lagvars,invariant=NULL,maxfu,lagfirst=lagfirst,first,frailty=FALSE){
+  # frailty models will fail if no censoring observations so create artificially censored observations
 	if(is.null(maxfu) & frailty){ maxtable <- tapply(data[,names(data)%in%time],data[,names(data)%in%id],max); maxfu <- cbind(1:length(maxtable),maxtable + max(maxtable)*0.001)}
+
+  # sort by id and time
 	data <- data[order(data[,names(data)%in%id],data[,names(data)%in%time]),]
 
   if(is.null(invariant) & !is.null(maxfu)) print("invariant must be specified if maxfu is non-null")
@@ -342,9 +341,15 @@ iiw.weights <- function(formulaph,formulanull=NULL,data,id,time,event,lagvars,in
 
 
 	# create weights
-	if(!is.null(maxfu)|frailty){if(length(maxfu)==1) datacox <- data else datacox <- addcensoredrows(data=data,maxfu=maxfu,tinvarcols=invarcols,id=id,time=time,event=event)}
+
+	# add rows corresponding to censoring times
+	if(!is.null(maxfu)|frailty){	datacox <- addcensoredrows(data=data,maxfu=maxfu,tinvarcols=invarcols,id=id,time=time,event=event)}
 	if(is.null(maxfu)) datacox <- data
+
+	# lag variables
 	datacox <- lagfn(datacox,lagvars,id,time,lagfirst)
+
+	# fit the visit intensity model and compute weights
 	if(!frailty){
 	m <- coxph(formula=formulaph,data=datacox)
 	data$iiw.weight <- iiw(m,lagfn(data,lagvars,id,time,lagfirst),id,time,first)
@@ -364,10 +369,10 @@ iiw.weights <- function(formulaph,formulanull=NULL,data,id,time,event,lagvars,in
 		columns <- colnames(Xmat)
 		Xmat.use <- Xmat[row.names(Xmat)%in%row.names(data),!columns%in%omit]
 		Xmat.use <- array(Xmat.use,dim=c(nrow(Xmat[row.names(Xmat)%in%row.names(data),]),length(columns[!columns%in%omit])))
-#		data$iiw.weight[row.names(data)%in%row.names(Xmat)] <- exp(-Xmat[row.names(Xmat)%in%row.names(data),!columns%in%omit]%*%m$coef)
 		data$iiw.weight[row.names(data)%in%row.names(Xmat)] <- exp(-Xmat.use%*%m$coef)
 
-	if(stabilize){
+    # stabilize the weights, if required
+		if(stabilize){
 		m0 <- frailtyPenal(formula=formulanull,data=datacox[use,],recurrentAG=TRUE,n.knots=6,kappa=10000,cross.validation=TRUE)
 		omit <- c("(Intercept)",paste("cluster(",id,")",sep=""))
 
@@ -414,17 +419,14 @@ iiw.weights <- function(formulaph,formulanull=NULL,data,id,time,event,lagvars,in
 #' library(survival)
 #' library(geepack)
 #' Phenobarb$event <- 1-as.numeric(is.na(Phenobarb$conc))
-#' data <- lagfn(Phenobarb, lagvars="dose", id="Subject", time="time", lagfirst = 0)
-#' data <- lagfn(data, lagvars="dose.lag", id="Subject", time="time", lagfirst = 0)
-#' data <- lagfn(data, lagvars="dose.lag.lag", id="Subject", time="time", lagfirst = 0)
-#' data$dose.lag[is.na(data$dose.lag)] <- data$dose.lag.lag[is.na(data$dose.lag)]
-#' data$dose.lag[is.na(data$dose.lag)] <- data$dose.lag.lag.lag[is.na(data$dose.lag)]
+#' data <- Phenobarb
 #' data <- data[data$event==1,]
 #' data$id <- as.numeric(data$Subject)
 #' data <- data[data$time<16*24,]
-#' i <- iiw.weights(Surv(time.lag,time,event)~Wt *dose.lag + dose.lag*(I(conc.lag>0) + conc.lag) +
-#' cluster(Subject),id="id",time="time",event="event",data=data,
-#' invariant="Subject",lagvars=c("time","conc"),maxfu=16*24,lagfirst=0,first=TRUE)
+#' i <- iiw.weights(Surv(time.lag,time,event)~I(conc.lag>0 & conc.lag<=20) +
+#' I(conc.lag>20 & conc.lag<=30) + I(conc.lag>30)+ cluster(id),
+#' id="id",time="time",event="event",data=data,
+#' invariant="id",lagvars=c("time","conc"),maxfu=16*24,lagfirst=0,first=TRUE)
 #' data$weight <- i$iiw.weight
 #' head(data)
 #' data.output1 <-   outputation(data,data$weight,singleobs=FALSE,
@@ -441,13 +443,14 @@ iiw.weights <- function(formulaph,formulanull=NULL,data,id,time,event,lagvars,in
 
 
 outputation <- function(data,weights,singleobs,id,time,keep.first){
-	if(singleobs==TRUE){
+    # If singleobs=TRUE, select one observation per subject (ignoring weights)
+  	if(singleobs==TRUE){
 		ids <- names(table(data[,names(data)%in%id]))
 		idnum <- array(dim=nrow(data))
 		for(i in 1:nrow(data)) idnum[i] <- (1:length(ids))[data[i,names(data)%in%id]==ids]
-#		if(is.data.frame(maxfu)){ for(i in 1:nrow(maxfu)){ maxfu[i,names(maxfu)%in%id] <- (1:length(ids))[maxfu[i,names(maxfu)%in%id]==ids]}}
 		data[,names(data)%in%id] <- idnum
 
+    # Define observation number within each subject
 		obsnum <- array(1,nrow(data))
 		for(row in 2:nrow(data)){
 			if(data[row,names(data)%in%id]==data[row-1,names(data)%in%id]) obsnum[row] <- obsnum[row-1] + 1
@@ -458,16 +461,19 @@ outputation <- function(data,weights,singleobs,id,time,keep.first){
 		include <- obsnum==samples[data[,names(data)%in%id]]
 		datamo <- data[include,]
 	}
+
+  # If singleobs=FALSE, retain each observation with probability proportional to the weights
 	if(singleobs==FALSE){
 		unif <- runif(nrow(data))
 		choosevec <- as.numeric(unif<(weights)/max(weights))
+		# if choosevec=1 then observation will be retained
 
-
+    # If first observation for each subject is to be kept, find the first observation and set corresponding value of choosevec to 1
 		if(keep.first==1){
 		ids <- names(table(data[,names(data)%in%id]))
 		idnum <- array(dim=nrow(data))
 		for(i in 1:nrow(data)) idnum[i] <- (1:length(ids))[data[i,names(data)%in%id]==ids]
-#		if(is.data.frame(maxfu)){ for(i in 1:nrow(maxfu)){ maxfu[i,names(maxfu)%in%id] <- (1:length(ids))[maxfu[i,names(maxfu)%in%id]==ids]}}
+
 		datanew <- data
 		datanew[,names(data)%in%id] <- idnum
 		datanew$first <- 0
@@ -482,6 +488,7 @@ outputation <- function(data,weights,singleobs,id,time,keep.first){
 	return(datamo)
 }
 
+# outputanalfn creates a single outputation and applies fn to it
 outputanalfn <- function(fn,data,weights,singleobs,id,time,keep.first,...){
 	datamo <- outputation(data,weights,singleobs,id,time,keep.first)
 	ans <- fn(datamo,...)
@@ -516,19 +523,14 @@ outputanalfn <- function(fn,data,weights,singleobs,id,time,keep.first,...){
 #' library(geepack)
 #'
 #' Phenobarb$event <- 1-as.numeric(is.na(Phenobarb$conc))
-#' data <- lagfn(Phenobarb, lagvars="dose", id="Subject", time="time", lagfirst = 0)
-#' data <- lagfn(data, lagvars="dose.lag", id="Subject", time="time", lagfirst = 0)
-#' data <- lagfn(data, lagvars="dose.lag.lag", id="Subject", time="time", lagfirst = 0)
-#' data$dose.lag[is.na(data$dose.lag)] <- data$dose.lag.lag[is.na(data$dose.lag)]
-#' data$dose.lag[is.na(data$dose.lag)] <- data$dose.lag.lag.lag[is.na(data$dose.lag)]
+#' data <- Phenobarb
 #' data <- data[data$event==1,]
 #' data$id <- as.numeric(data$Subject)
 #' data <- data[data$time<16*24,]
-#' i <- iiw.weights(Surv(time.lag,time,event)~Wt *dose.lag +
-#'          dose.lag*(I(conc.lag>0) + conc.lag) +
-#'          cluster(Subject),id="id",time="time",event="event",data=data,
-#'          invariant="Subject",lagvars=c("time","conc"),maxfu=16*24,
-#'          lagfirst=0,first=TRUE)
+#' i <- iiw.weights(Surv(time.lag,time,event)~I(conc.lag>0 & conc.lag<=20) +
+#' I(conc.lag>20 & conc.lag<=30) + I(conc.lag>30)+ cluster(id),
+#' id="id",time="time",event="event",data=data, invariant="id",lagvars=c("time","conc"),maxfu=16*24,
+#'          lagfirst=c(0,0),first=TRUE)
 #' wt <- i$iiw.weight
 #' wt[wt>quantile(i$iiw.weight,0.95)] <- quantile(i$iiw.weight,0.95)
 #' data$wt <- wt
@@ -548,12 +550,16 @@ outputanalfn <- function(fn,data,weights,singleobs,id,time,keep.first,...){
 
 mo <- function(noutput,fn,data,weights,singleobs,id,time,keep.first,var=TRUE,...){
 	dimlast <- as.numeric(var)+1
+
+	# perform outputation noutput times
 	for(it in 1:noutput){
 		if(it==1){ a <- outputanalfn(fn,data,weights,singleobs,id,time,keep.first,...); if(is.vector(a)) a <- array(a,dim=c(1,length(a))); if(var) ans <- array(dim=c(noutput,dim(a))) else ans <- array(dim=c(noutput,length(a),1)); ans[1,,] <- a}
 		if(it>1){ a <- outputanalfn(fn,data,weights,singleobs,id,time,keep.first,...); if(is.vector(a)) a <- array(a,dim=c(1,length(a))); ans[it,,] <- a}
 
 	}
 	print(ans)
+
+	# pool
 	pooled <- apply(ans,2:3,mean)
 	if(var){
 		var.within <- pooled[,2]
@@ -650,6 +656,7 @@ mo <- function(noutput,fn,data,weights,singleobs,id,time,keep.first,var=TRUE,...
 
 Liang <- function(data,Yname, Xnames, Wnames, Znames=NULL,formulaobs=NULL, id,time, invariant=NULL,lagvars=NULL,lagfirst=NULL,maxfu,baseline,n.knots=NULL,kappa=NULL,Xfn=NULL,Wfn=NULL,... ){
 
+  # If no covariates in the visit intensity model
   if(is.null(formulaobs)){
     fn <- function(t,tvec) return(which.min(abs(t-tvec)))
 
@@ -663,12 +670,13 @@ Liang <- function(data,Yname, Xnames, Wnames, Znames=NULL,formulaobs=NULL, id,ti
     if(is.null(maxfu)){ maxtable <- tapply(data[,names(data)%in%time],data[,names(data)%in%id],max); maxfu.use <- cbind(1:length(maxtable),maxtable + max(maxtable)*0.001)}
 
 
-    #	if(identical(ids,as.vector(maxfu[order(maxfu[,1]),1]))==FALSE &identical(as.numeric(ids),as.vector(maxfu[order(maxfu[,1]),1]))==FALSE ) print("Error - ids in maxfu must match ids in 'data'")
-
-
+    # find number of subjects
     n <- length(table(data[,names(data)%in%id]))
+
+    # find number of observations per subject
     mi <- tapply(data[,names(data)%in%Yname],data[,names(data)%in%id],length)-baseline
 
+    # create matrix of covariates (fixed and random)
     Xcols <- (1:ncol(data))[is.finite(match(names(data), Xnames))]
     Wcols <- (1:ncol(data))[is.finite(match(names(data), Wnames))]
     X <- array(data.matrix(data[,Xcols]),dim=c(nrow(data),length(Xnames)))
@@ -678,12 +686,15 @@ Liang <- function(data,Yname, Xnames, Wnames, Znames=NULL,formulaobs=NULL, id,ti
     maxfu.use <- maxfu.use[order(maxfu.use[,1]),]
     data <- data[order(idnum),]
 
+    # find baseline hazard in the case where everyone is followed for the same length of time
     if(length(maxfu)==1){
       Lambdahat <- nrow(data)/n
       sigmahatsq <- max((sum(mi^2)-sum(mi)-n*Lambdahat^2)/(n*Lambdahat^2),0)
       Lambdahat <- rep(Lambdahat,n)
       Ci <- rep(maxfu,n)
     }
+
+    # find baseline hazard for the general case
     if(length(maxfu)>1){
       maxfu.use <- maxfu.use[order(maxfu[,1]),]
       ids <- as.numeric(names(table(data[,names(data)%in%id])))
@@ -703,12 +714,15 @@ Liang <- function(data,Yname, Xnames, Wnames, Znames=NULL,formulaobs=NULL, id,ti
       bindex <- sapply(Ci,indexfnnocov,time=b$time)
       bindex[bindex==0] <- 1
       Lambdahat <- b$hazard[bindex]
+
+      # method of moments estimator for frailty variance
       sigmahatsq <- max((sum(mi^2)-sum(mi)-sum(Lambdahat^2))/sum(Lambdahat^2),0)
     }
 
     mi.Lambdahat <- mi/Lambdahat
     mi.Lambdahat[mi==0 & Lambdahat==0] <- 1
 
+    # compute estimate of B
     Bhat <- array(dim=c(nrow(data),ncol(W)))
     Bbar <- Bhat
     Xbar <- array(dim=c(nrow(data),ncol(X)))
@@ -722,32 +736,21 @@ Liang <- function(data,Yname, Xnames, Wnames, Znames=NULL,formulaobs=NULL, id,ti
     Xbar <- array(dim = c(nrow(data),ncol(X)))
     Bbar <- array(dim = c(nrow(data),ncol(W)))
 
-    #	X0 <- array(apply(X,data[,names(data)%in%id],mean),dim=c(n,ncol(X))
-
-    #	for(row in 1:nrow(data)){
-    #		t <- data[,names(data)%in%time][row]
-    #		Xbar[row,] <- apply(sweep(X0,1,mi*as.numeric(Ci>=t)/Lambdahat,"*"),2,mean)/
-    #	}
-
+    # number observations within subjects
     obsnum <- rep(1,nrow(data))
     for(row in 2:nrow(data)){
       if(identical(data[row,names(data)%in%id],data[row-1,names(data)%in%id])) obsnum[row] <- obsnum[row-1]+1
     }
     firstobs <- (1:nrow(data))[obsnum==1]
 
+    # If Xfn is not supplied then compute Xi(t) using the observation for subject i closest to t
     if(is.null(Xfn)){
     for (row in 1:nrow(data)) {
       t <- data[,names(data)%in%time][row]
-      #        	absdiff <- abs(data[,names(data)%in%time] - t)
-      #        	min <- tapply(absdiff, data[,names(data)%in%id], min)
-      #        	data.min <- min[data[,names(data)%in%id]]
       closest <- tapply(data[,names(data)%in%time],data[,names(data)%in%id],fn,t=data[,names(data)%in%time][row])
       userow <- firstobs + closest-1
       Xbar[row,] <- apply(sweep(array(X[userow,],dim=c(n,length(Xnames))),1, (mi.Lambdahat*as.numeric(Ci>=t)),"*"),2,sum)/sum((mi.Lambdahat*as.numeric(Ci>=t)))
       Bbar[row,] <- apply(sweep(array(Bhat[userow,],dim=c(n,length(Wnames))),1, (mi.Lambdahat*as.numeric(Ci>=t)),"*"),2,sum)/sum((mi.Lambdahat*as.numeric(Ci>=t)))
-      #        	Bbar[row,] <- apply(sweep(array(Bhat[data.min - absdiff == 0,],dim=c(n,length(Wnames))),1, (mi.Lambdahat*as.numeric(Ci>=t))[data[,names(data)%in%id]][data.min -
-      #            absdiff == 0],"*"),2,sum)/sum((mi.Lambdahat*as.numeric(Ci>=t))[data[,names(data)%in%id][data.min - absdiff ==
-      #            0]])
     }
     } else{
       for (row in 1:nrow(data)) {
@@ -757,12 +760,10 @@ Liang <- function(data,Yname, Xnames, Wnames, Znames=NULL,formulaobs=NULL, id,ti
         Bt <- sweep(array(Wt,dim=c(nrow(data),ncol(W))),1,Bmultiplier,"*")
         Xbar[row,] <- apply(sweep(array(Xt,dim=c(n,length(Xnames))),1, (mi.Lambdahat*as.numeric(Ci>=t)),"*"),2,sum)/sum((mi.Lambdahat*as.numeric(Ci>=t)))
         Bbar[row,] <- apply(sweep(array(Bt,dim=c(n,length(Wnames))),1, (mi.Lambdahat*as.numeric(Ci>=t)),"*"),2,sum)/sum((mi.Lambdahat*as.numeric(Ci>=t)))
-        #        	Bbar[row,] <- apply(sweep(array(Bhat[data.min - absdiff == 0,],dim=c(n,length(Wnames))),1, (mi.Lambdahat*as.numeric(Ci>=t))[data[,names(data)%in%id]][data.min -
-        #            absdiff == 0],"*"),2,sum)/sum((mi.Lambdahat*as.numeric(Ci>=t))[data[,names(data)%in%id][data.min - absdiff ==
-        #            0]])
       }
     }
 
+    # solve the estimating equations
     regX <- array((X - Xbar),dim=c(nrow(data),ncol(X)))[data[,names(data)%in%time]>0,]
     regB <- array(Bhat - Bbar,dim=c(nrow(data),ncol(W)))[data[,names(data)%in%time]>0,]
     regY <- data[,names(data)%in%Yname][data[,names(data)%in%time]>0]
@@ -773,6 +774,7 @@ Liang <- function(data,Yname, Xnames, Wnames, Znames=NULL,formulaobs=NULL, id,ti
   }
 
 
+  # when there are covariates in the visit process model
   if(!is.null(formulaobs)){
     fn <- function(t,tvec) return(which.min(abs(t-tvec)))
 
@@ -786,12 +788,13 @@ Liang <- function(data,Yname, Xnames, Wnames, Znames=NULL,formulaobs=NULL, id,ti
     if(is.null(maxfu)){ maxtable <- tapply(data[,names(data)%in%time],data[,names(data)%in%id],max); maxfu.use <- cbind(1:length(maxtable),maxtable + max(maxtable)*0.001)}
 
 
-    #	if(identical(ids,as.vector(maxfu[order(maxfu[,1]),1]))==FALSE &identical(as.numeric(ids),as.vector(maxfu[order(maxfu[,1]),1]))==FALSE ) print("Error - ids in maxfu must match ids in 'data'")
-
-
+    # compute number of subjects
     n <- length(table(data[,names(data)%in%id]))
+
+    # number of observations per subject
     mi <- tapply(data[,names(data)%in%Yname],data[,names(data)%in%id],length)-baseline
 
+    # compute X, W and Z matrices
     Xcols <- (1:ncol(data))[is.finite(match(names(data), Xnames))]
     Wcols <- (1:ncol(data))[is.finite(match(names(data), Wnames))]
     Zcols <- (1:ncol(data))[is.finite(match(names(data), Znames))]
@@ -805,6 +808,7 @@ Liang <- function(data,Yname, Xnames, Wnames, Znames=NULL,formulaobs=NULL, id,ti
     maxfu.use <- maxfu.use[order(maxfu.use[,1]),]
     data <- data[order(idnum),]
 
+    # create vector of censoring times
     if(length(maxfu)==1){
       Ci <- rep(maxfu,n)
 
@@ -819,33 +823,32 @@ Liang <- function(data,Yname, Xnames, Wnames, Znames=NULL,formulaobs=NULL, id,ti
       data$event <- 1
     }
     lagcols <- (1:ncol(data))[is.finite(match(names(data), time))]
-    #    invarcols <- (1:ncol(data))[is.finite(match(names(data), id))]
 
-
+    # create dataset for fitting visit intensity model - add censored rows and lag variables
     datacox <- addcensoredrows(data=data,maxfu=maxfu,tinvarcols=invariant,id=id,time=time,event="event")
     datacox <- lagfn(datacox,lagvars,id,time,lagfirst=lagfirst)
 
     formulacov <- Surv(time.lag,time,event)~Znames + cluster(id)
     formulacox <- Surv(time.lag,time,event)~Znames + (1|id)
     row.names(datacox)[datacox$event==1] <- row.names(data)
+
+    # frailtyPenal does not accept missing values - where lagging creates missing values, remove these rows
+    # if first visit time is stochastic, lagfirst should be supplied for time, so as not to create missing values
+    # if first visit time is not stochastic, the first visit for each subject does not contribute to the intensity so can be removed
     use <- (1:nrow(datacox))[(!is.na(datacox[,names(datacox)%in%paste(time,".lag",sep="")]))]
     datacoxuse <- datacox[use,]
     use <- (1:nrow(datacoxuse))[datacoxuse[,names(datacoxuse)%in%time]-datacoxuse[,names(datacoxuse)%in%paste(time,".lag",sep="")]>0]
     datacoxuse <- datacoxuse[use,]
     row.names(datacoxuse) <- 1:nrow(datacoxuse)
+
+    # fit frailty model
     mcov <- frailtyPenal(formula=formulaobs,data=datacoxuse, recurrentAG=TRUE, n.knots=n.knots,kappa=kappa,cross.validation=TRUE,print.times=FALSE)
 
     omit <- c("(Intercept)",paste("cluster(",id,")",sep=""))
-    #	Zmat <- model.matrix(terms(formula(mcov)),data=datacox)
-
-    #	columns <- colnames(Zmat)
-    #	if(dim(Zmat)[2]>3){ data$lp[row.names(data)%in%row.names(Zmat)] <- exp(-Zmat[row.names(Zmat)%in%row.names(data),!columns%in%omit]%*%mcov$coef)} else{
-    #	  data$lp[row.names(data)%in%row.names(Zmat)] <- exp(-Zmat[row.names(Zmat)%in%row.names(data),!columns%in%omit]*mcov$coef)
-    #	}
     data$lp <- Z%*%mcov$coef
 
 
-
+    # Compute cumulative hazard Lambdahat
     indexfn <- function(x) return(sum(as.numeric(mcov$x<=x)))
     indexfns <- function(x) return(sapply(x,indexfn))
     Hazard0 <- -log(mcov$surv[,1,1])[indexfns(Ci)]
@@ -853,10 +856,11 @@ Liang <- function(data,Yname, Xnames, Wnames, Znames=NULL,formulaobs=NULL, id,ti
     lp <- tapply(data$lp,data[,names(data)%in%id],mean,na.rm=TRUE)
     Lambdahat <- Hazard0*exp(lp)
 
+    # this is the frailty variance
     sigmahatsq <- mcov$theta
        print(paste("sigmahatsq=",sigmahatsq,sep=""))
 
-    #  mi.Lambdahat <- mi/Lambdahat
+    # compute estimate of B
     mi.Lambdahat <- mi/Hazard0
     mi.Lambdahat[mi==0 & Lambdahat==0] <- 1
 
@@ -873,12 +877,6 @@ Liang <- function(data,Yname, Xnames, Wnames, Znames=NULL,formulaobs=NULL, id,ti
     Xbar <- array(dim = c(nrow(data),ncol(X)))
     Bbar <- array(dim = c(nrow(data),ncol(W)))
 
-    #	X0 <- array(apply(X,data[,names(data)%in%id],mean),dim=c(n,ncol(X))
-
-    #	for(row in 1:nrow(data)){
-    #		t <- data[,names(data)%in%time][row]
-    #		Xbar[row,] <- apply(sweep(X0,1,mi*as.numeric(Ci>=t)/Lambdahat,"*"),2,mean)/
-    #	}
 
     obsnum <- rep(1,nrow(data))
     for(row in 2:nrow(data)){
@@ -886,19 +884,15 @@ Liang <- function(data,Yname, Xnames, Wnames, Znames=NULL,formulaobs=NULL, id,ti
     }
     firstobs <- (1:nrow(data))[obsnum==1]
 
+    # if Xfn not supplied, set Xi(t) to be the closest observation of X for subjecti to t
     if(is.null(Xfn)){
       for (row in 1:nrow(data)) {
         t <- data[,names(data)%in%time][row]
-        #        	absdiff <- abs(data[,names(data)%in%time] - t)
-        #        	min <- tapply(absdiff, data[,names(data)%in%id], min)
-        #        	data.min <- min[data[,names(data)%in%id]]
         closest <- tapply(data[,names(data)%in%time],data[,names(data)%in%id],fn,t=data[,names(data)%in%time][row])
         userow <- firstobs + closest-1
         Xbar[row,] <- apply(sweep(array(X[userow,],dim=c(n,length(Xnames))),1, (mi.Lambdahat*as.numeric(Ci>=t)),"*"),2,sum)/sum((mi.Lambdahat*as.numeric(Ci>=t)))
         Bbar[row,] <- apply(sweep(array(Bhat[userow,],dim=c(n,length(Wnames))),1, (mi.Lambdahat*as.numeric(Ci>=t)),"*"),2,sum)/sum((mi.Lambdahat*as.numeric(Ci>=t)))
-        #        	Bbar[row,] <- apply(sweep(array(Bhat[data.min - absdiff == 0,],dim=c(n,length(Wnames))),1, (mi.Lambdahat*as.numeric(Ci>=t))[data[,names(data)%in%id]][data.min -
-        #            absdiff == 0],"*"),2,sum)/sum((mi.Lambdahat*as.numeric(Ci>=t))[data[,names(data)%in%id][data.min - absdiff ==
-        #            0]])
+
       }
     } else{
       for (row in 1:nrow(data)) {
@@ -908,11 +902,9 @@ Liang <- function(data,Yname, Xnames, Wnames, Znames=NULL,formulaobs=NULL, id,ti
         Bt <- sweep(array(Wt,dim=c(nrow(data),ncol(W))),1,Bmultiplier,"*")
         Xbar[row,] <- apply(sweep(array(Xt,dim=c(n,length(Xnames))),1, (mi.Lambdahat*as.numeric(Ci>=t)),"*"),2,sum)/sum((mi.Lambdahat*as.numeric(Ci>=t)))
         Bbar[row,] <- apply(sweep(array(Bt,dim=c(n,length(Wnames))),1, (mi.Lambdahat*as.numeric(Ci>=t)),"*"),2,sum)/sum((mi.Lambdahat*as.numeric(Ci>=t)))
-        #        	Bbar[row,] <- apply(sweep(array(Bhat[data.min - absdiff == 0,],dim=c(n,length(Wnames))),1, (mi.Lambdahat*as.numeric(Ci>=t))[data[,names(data)%in%id]][data.min -
-        #            absdiff == 0],"*"),2,sum)/sum((mi.Lambdahat*as.numeric(Ci>=t))[data[,names(data)%in%id][data.min - absdiff ==
-        #            0]])
       }}
 
+    # solve the estimating equations
     regX <- array((X - Xbar),dim=c(nrow(data),ncol(X)))[data[,names(data)%in%time]>0,]
     regB <- array(Bhat - Bbar,dim=c(nrow(data),ncol(W)))[data[,names(data)%in%time]>0,]
     regY <- data[,names(data)%in%Yname][data[,names(data)%in%time]>0]
@@ -982,11 +974,7 @@ abacus.plot <- function(n,time,id,data,tmin,tmax,xlab.abacus="Time",ylab.abacus=
 #' library(survival)
 #' data(Phenobarb)
 #' Phenobarb$event <- 1-as.numeric(is.na(Phenobarb$conc))
-#' data <- lagfn(Phenobarb, lagvars="dose", id="Subject", time="time", lagfirst = 0)
-#' data <- lagfn(data, lagvars="dose.lag", id="Subject", time="time", lagfirst = 0)
-#' data <- lagfn(data, lagvars="dose.lag.lag", id="Subject", time="time", lagfirst = 0)
-#' data$dose.lag[is.na(data$dose.lag)] <- data$dose.lag.lag[is.na(data$dose.lag)]
-#' data$dose.lag[is.na(data$dose.lag)] <- data$dose.lag.lag.lag[is.na(data$dose.lag)]
+#' data <- Phenobarb
 #' data <- data[data$event==1,]
 #' data$id <- as.numeric(data$Subject)
 #' counts <- extent.of.irregularity(data,time="time",id="id",scheduledtimes=NULL,
@@ -1005,6 +993,8 @@ extent.of.irregularity <- function(data,time="time",id="id",scheduledtimes=NULL,
   if(!is.null(scheduledtimes)){if(is.null(cutpoints)){ bin.widths <- 100*((1:(ncutpts-1))/ncutpts)} else{bin.widths <- 1:ncutpts }}
   if(is.null(scheduledtimes)) bin.widths <- 1:ncutpts
 
+  # for a given set of cutpoints and observation times, getcounts finds the mean proportion of bins with zero, 1 and >1 observations per bin
+  # if there are scheduled visits, the bins will be defined by left and right cutpoints around each bin
   getcounts <- function(cutpoints,time){
     logicalmat <- outer(time,cutpoints[,2],"-")<0 & outer(time,cutpoints[,1],"-")>=0
     inbin <- apply(logicalmat,2,collapseid,id=idvec)
@@ -1015,6 +1005,7 @@ extent.of.irregularity <- function(data,time="time",id="id",scheduledtimes=NULL,
     return(cbind(zero,one,gtone))
   }
 
+  # if there are no scheduled visits, bins will be adjacent so cutpoints is supplied as a vector rather than a matrix
   getcounts.nosched <- function(cutpoints,time){
     logicalmat <- outer(time,cutpoints[-1],"-")<0 & outer(time,cutpoints[-length(cutpoints)],"-")>=0
     inbin <- apply(logicalmat,2,collapseid,id=idvec)
@@ -1032,6 +1023,7 @@ extent.of.irregularity <- function(data,time="time",id="id",scheduledtimes=NULL,
 
 
   if(!is.null(scheduledtimes)){
+    # if cutpoints is not supplied, compute cutpoints symmetrically about each scheduled visit time
     if(is.null(cutpoints)){
       gaps <- c(0,c(scheduledtimes[-1],maxfu)-scheduledtimes)
       leftcutpoints <- -sweep(outer(gaps,((1:(ncutpts-1))/ncutpts),"*"),1,c(scheduledtimes,maxfu),"-")
@@ -1048,6 +1040,7 @@ extent.of.irregularity <- function(data,time="time",id="id",scheduledtimes=NULL,
 
   mean2<- function(counts){return(apply(counts,2,mean))}
 
+  # if there are no scheduled times, compute cutpoints so that the expected number of observations per bin is equal
   if(is.null(scheduledtimes)){
     data$event <- 1; event <- "event"
     cutpoints <- lapply(1:ncutpts,basehaz.cutpoints,formula,data,id,time,event,lagvars="time",maxfu=maxfu,tau)
@@ -1076,7 +1069,7 @@ extent.of.irregularity <- function(data,time="time",id="id",scheduledtimes=NULL,
 
 findx <- function(threshold,x,y){if(min(y)>=threshold){ ans <- 0} else{ans <- max(x[y<threshold])}; return(ans)}
 
-
+# compute cutpoints so that the expected number of observations per bin is equal
 basehaz.cutpoints <- function(nbin,formula,data,id,time,event,lagvars,maxfu,tau){
   data <- data[order(data[,names(data)%in%id],data[,names(data)%in%time]),]
 
