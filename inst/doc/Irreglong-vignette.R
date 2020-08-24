@@ -3,7 +3,6 @@ library(IrregLong)
 library(MEMSS)
 library(survival)
 library(geepack)
-library(frailtypack)
 library(data.table)
 
 ## -----------------------------------------------------------------------------
@@ -22,11 +21,11 @@ abacus.plot(n=59,time="time",id="Subject",data=data,tmin=0,tmax=16*24,
  xlab.abacus="Time in hours",pch=16,col.abacus=gray(0.8))
 
 ## ----fig.width=8, fig.height=12-----------------------------------------------
-counts <- extent.of.irregularity(data,time="time",id="id",
-  scheduledtimes=NULL, cutpoints=NULL,ncutpts=50, 
-  maxfu=16*24, plot=TRUE,legendx=30,legendy=0.8,
- formula=Surv(time.lag,time,event)~1,tau=16*24)
- counts$auc
+# counts <- extent.of.irregularity(data,time="time",id="id",
+#   scheduledtimes=NULL, cutpoints=NULL,ncutpts=50, 
+#   maxfu=16*24, plot=TRUE,legendx=30,legendy=0.8,
+#  formula=Surv(time.lag,time,event)~1,tau=16*24)
+#  counts$auc
 
 ## -----------------------------------------------------------------------------
 data$Apgar <- as.numeric(data$Apgar)
@@ -172,9 +171,9 @@ data$ApgarInd.time3 <- as.numeric(data$ApgarInd)*((data$time/24)^3)
 set.seed(301031)
 ifrailty <- iiw.weights(Surv(time.lag,time,event)~I(conc.lag>0 & conc.lag<=20) + 
                 I(conc.lag>20 & conc.lag<=30) + I(conc.lag>30)   
-                      +cluster(id),id="id",time="time",event="event",data=data,     
+                      +frailty(id),id="id",time="time",event="event",data=data,     
                       invariant=c("id"),lagvars=c("time","conc"),maxfu=16*24,
-                      lagfirst=c(0,0), first=FALSE,frailty=TRUE)
+                      lagfirst=c(0,0), first=FALSE)
 
 wt <- ifrailty$iiw.weight
 
