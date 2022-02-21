@@ -15,17 +15,18 @@ data <- data[data$time<16*24,]
 data <- data[order(data$id,data$time),]
 head(data)
 
-## -----------------------------------------------------------------------------
+## ----fig.height=6, fig.width=6------------------------------------------------
 summary(tapply(data$event,data$Subject,sum))
 abacus.plot(n=59,time="time",id="Subject",data=data,tmin=0,tmax=16*24,
  xlab.abacus="Time in hours",pch=16,col.abacus=gray(0.8))
 
-## ----fig.width=8, fig.height=12-----------------------------------------------
-# counts <- extent.of.irregularity(data,time="time",id="id",
-#   scheduledtimes=NULL, cutpoints=NULL,ncutpts=50, 
-#   maxfu=16*24, plot=TRUE,legendx=30,legendy=0.8,
-#  formula=Surv(time.lag,time,event)~1,tau=16*24)
-#  counts$auc
+## ----warning=FALSE, fig.height = 8, fig.width=8-------------------------------
+ counts <- extent.of.irregularity(data,time="time",id="id",
+   scheduledtimes=NULL, cutpoints=NULL,ncutpts=50, 
+   maxfu=16*24, plot=TRUE,legendx=30,legendy=0.8,
+  formula=Surv(time.lag,time,event)~1,tau=16*24)
+counts$auc
+counts$transformed.auc
 
 ## -----------------------------------------------------------------------------
 data$Apgar <- as.numeric(data$Apgar)

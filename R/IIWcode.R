@@ -1,8 +1,8 @@
 
-#' @import stats survival geepack
+#' @import stats survival geepack data.table graphics
 #' @importFrom stats runif formula model.matrix predict terms
 #' @importFrom graphics plot points segments
-#' @importFrom data.table data.table setkey rbindlist
+#' @importFrom data.table data.table setkey setkeyv rbindlist shift := .SD first
 #' @importFrom graphics legend lines par
 
 
@@ -25,7 +25,7 @@ lagby1.1var <- function(x,id,time,lagfirst=NA){
     dt1 <- data.frame(DT[data.table(unique(id)), mult = "first"])
     dt1$lagx <- lagfirst
 
-    lagx[dt1$rows] <- lagfirst
+    lagx[as.numeric(dt1$rows)] <- lagfirst
     return(lagx)
   }
   else return(NA)
@@ -44,6 +44,7 @@ lagby1.1var <- function(x,id,time,lagfirst=NA){
 #' @return The original data frame with lagged variables added on as columns. For example, if the data frame contains a variable named x giving the value of x for each subject i at each visit j, the returned data frame will contain a column named x.lag containing the value of x for subject i at visit j-1. If j is the first visit for subject i, the lagged value is set to NA
 #' @examples
 #' library(nlme)
+#' library(data.table)
 #' data(Phenobarb)
 #' head(Phenobarb)
 #'
@@ -54,14 +55,25 @@ lagby1.1var <- function(x,id,time,lagfirst=NA){
 
 lagfn <- function(data,lagvars,id,time,lagfirst=NA){
 
-  columns <- (1:ncol(data))[is.finite(match(names(data), lagvars))]
-  for(col in 1:length(columns)){
-  	if(col==1) lagged <- lagby1.1var(x=data[,columns[col]],id=data[,names(data)%in%id],time=data[,names(data)%in%time],lagfirst=lagfirst[col])
-  	if(col>1) lagged <- cbind(lagged,lagby1.1var(x=data[,columns[col]],id=data[,names(data)%in%id],time=data[,names(data)%in%time],lagfirst=lagfirst[col]))
-  }
-  	lagged <- as.data.frame(lagged)
-	for(col in 1:length(columns)) names(lagged)[col] <- paste(names(data)[columns][col],".lag",sep="")
-	data <- cbind(data,lagged)
+#  columns <- (1:ncol(data))[is.finite(match(names(data), lagvars))]
+#  for(col in 1:length(columns)){
+#  	if(col==1) lagged <- lagby1.1var(x=data[,columns[col]],id=data[,names(data)%in%id],time=data[,names(data)%in%time],lagfirst=lagfirst[col])
+#  	if(col>1) lagged <- cbind(lagged,lagby1.1var(x=data[,columns[col]],id=data[,names(data)%in%id],time=data[,names(data)%in%time],lagfirst=lagfirst[col]))
+#  }
+#  	lagged <- as.data.frame(lagged)
+#	for(col in 1:length(columns)) names(lagged)[col] <- paste(names(data)[columns][col],".lag",sep="")
+#	data <- cbind(data,lagged)
+
+	dt <- data.table(data)
+	setkeyv(dt,as.character(id))
+	lagged.names <- paste(lagvars,"lag",sep=".")
+	for(col in 1:length(lagvars)){
+	dt[, (lagged.names)[col] :=  shift(.SD,fill=lagfirst[col]), by=eval(id), .SDcols=lagvars[col]]
+	}
+#	dt[, (lagged.names),by=eval(id),mult=first] <- lagfirst; print("2")
+	data <- as.data.frame(dt)
+
+
 	return(data)
 }
 
@@ -107,12 +119,12 @@ addcensoredrows <- function(data,maxfu,tinvarcols,id,time,event){
   extrarows <- as.data.frame(extrarows)
   names(extrarows) <- names(data)
 
-
+  colnum <- (1:ncol(data))[names(data)==id]
   DT <- data.table(data)
-  setkey(DT, id)
+  setkeyv(DT, names(data)[colnum])
 
   # derive time-invariant covariates for each subject, and add to extrarows
-  dt1 <- data.frame(DT[data.table(unique(id)), mult = "first"])
+  dt1 <- data.frame(unique(DT,by=names(DT)[colnum],mult=first))
   extrarows[,tinvarcols] <- dt1[,tinvarcols]
   extrarows[,names(data)%in%id] <- dt1[,names(dt1)%in%id]
 
@@ -126,10 +138,12 @@ addcensoredrows <- function(data,maxfu,tinvarcols,id,time,event){
   extrarows <- extrarows[!alreadythere,]
 
   # add extrarows to data
-  data <- rbind(data.matrix(data),data.matrix(extrarows))
+  row.names(extrarows) <- nrow(data) + 1:nrow(extrarows)
+  data <- rbind(data,extrarows)
   data <- as.data.frame(data)
   data <- data[order(data[,names(data)%in%id],data[,names(data)%in%time]),]
   return(data)
+
 }
 
 # fit a proportional hazards model and compute the stabilized inverse intensity weights
@@ -159,9 +173,9 @@ phfn <- function(datacox,regcols,data){
 #' @return A vector of inverse-intensity weights for each row of the dataset. The first observation for each subject is assumed to have an intensity of 1.
 #' @examples
 #' library(nlme)
-#' data(Phenobarb)
 #' library(survival)
 #' library(geepack)
+#' library(data.table)
 #' data(Phenobarb)
 #' Phenobarb$event <- 1-as.numeric(is.na(Phenobarb$conc))
 #' data <- Phenobarb
@@ -219,6 +233,7 @@ iiw <- function(phfit,data,id,time,first){
 #' data(Phenobarb)
 #' library(survival)
 #' library(geepack)
+#' library(data.table)
 #' Phenobarb$event <- 1-as.numeric(is.na(Phenobarb$conc))
 #' data <- Phenobarb
 #' data <- data[data$event==1,]
@@ -291,6 +306,7 @@ iiwgee <- function(formulagee,formulaph,formulanull=NULL,data,id,time,event,fami
 #' data(Phenobarb)
 #' library(survival)
 #' library(geepack)
+#' library(data.table)
 #' Phenobarb$event <- 1-as.numeric(is.na(Phenobarb$conc))
 #' data <- Phenobarb
 #' data <- data[data$event==1,]
@@ -346,7 +362,7 @@ iiw.weights <- function(formulaph,formulanull=NULL,data,id,time,event,lagvars,in
 	if(is.null(maxfu)) datacox <- data
 
 	# lag variables
-	datacox <- lagfn(datacox,lagvars,id,time,lagfirst)
+	if(!is.null(lagvars)){ datacox <- lagfn(datacox,lagvars,id,time,lagfirst)}
 
 	# fit the visit intensity model and compute weights
 
@@ -390,6 +406,7 @@ iiw.weights <- function(formulaph,formulanull=NULL,data,id,time,event,lagvars,in
 #' data(Phenobarb)
 #' library(survival)
 #' library(geepack)
+#' library(data.table)
 #' Phenobarb$event <- 1-as.numeric(is.na(Phenobarb$conc))
 #' data <- Phenobarb
 #' data <- data[data$event==1,]
@@ -437,7 +454,7 @@ outputation <- function(data,weights,singleobs,id,time,keep.first){
   # If singleobs=FALSE, retain each observation with probability proportional to the weights
 	if(singleobs==FALSE){
 		unif <- runif(nrow(data))
-		choosevec <- as.numeric(unif<(weights)/max(weights))
+		choosevec <- as.numeric(unif<(weights)/max(weights,na.rm=TRUE))
 		# if choosevec=1 then observation will be retained
 
     # If first observation for each subject is to be kept, find the first observation and set corresponding value of choosevec to 1
@@ -461,7 +478,7 @@ outputation <- function(data,weights,singleobs,id,time,keep.first){
 }
 
 # outputanalfn creates a single outputation and applies fn to it
-outputanalfn <- function(fn,data,weights,singleobs,id,time,keep.first,...){
+outputanalfn <- function(it,fn,data,weights,singleobs,id,time,keep.first,...){
 	datamo <- outputation(data,weights,singleobs,id,time,keep.first)
 	ans <- fn(datamo,...)
 	return(ans)
@@ -493,6 +510,7 @@ outputanalfn <- function(fn,data,weights,singleobs,id,time,keep.first,...){
 #' data(Phenobarb)
 #' library(survival)
 #' library(geepack)
+#' library(data.table)
 #'
 #' Phenobarb$event <- 1-as.numeric(is.na(Phenobarb$conc))
 #' data <- Phenobarb
@@ -524,18 +542,25 @@ mo <- function(noutput,fn,data,weights,singleobs,id,time,keep.first,var=TRUE,...
 	dimlast <- as.numeric(var)+1
 
 	# perform outputation noutput times
-	for(it in 1:noutput){
-		if(it==1){ a <- outputanalfn(fn,data,weights,singleobs,id,time,keep.first,...); if(is.vector(a)) a <- array(a,dim=c(1,length(a))); if(var) ans <- array(dim=c(noutput,dim(a))) else ans <- array(dim=c(noutput,length(a),1)); ans[1,,] <- a}
-		if(it>1){ a <- outputanalfn(fn,data,weights,singleobs,id,time,keep.first,...); if(is.vector(a)) a <- array(a,dim=c(1,length(a))); ans[it,,] <- a}
+	a <- lapply(1:noutput,outputanalfn,fn,data,weights,singleobs,id,time,keep.first,...)
+	if(var) ans <- array(unlist(a),dim=c(dim(a[[1]]),noutput))
+	if(!var) ans <- array(unlist(a),dim=c(length(a[[1]]),noutput))
+	# for(it in 1:noutput){
+	# 	if(it==1){ a <- outputanalfn(fn,data,weights,singleobs,id,time,keep.first,...); if(is.vector(a)) a <- array(a,dim=c(1,length(a))); if(var) ans <- array(dim=c(noutput,dim(a))) else ans <- array(dim=c(noutput,length(a),1)); ans[1,,] <- a}
+	# 	if(it>1){ a <- outputanalfn(fn,data,weights,singleobs,id,time,keep.first,...); if(is.vector(a)) a <- array(a,dim=c(1,length(a))); ans[it,,] <- a}
+	#
+	# }
 
-	}
-	print(ans)
+	if(!var) ans <- array(ans,dim=c(dim(ans)[1],1,noutput))
+	 ans <- aperm(ans,c(3,1,2))
+
+
 
 	# pool
 	pooled <- apply(ans,2:3,mean)
 	if(var){
 		var.within <- pooled[,2]
-		var.between <- apply(array(ans[,,1],dim=c(noutput,dim(a)[1])),2,var)
+		var.between <- apply(array(ans[,,1],dim=c(noutput,dim(ans)[2])),2,var)
 		var.est <- var.within - ((noutput-1)/noutput)*var.between
 		RE.MO <- 1 + (1/noutput)*(var.between/(var.within-var.between))
 
@@ -941,30 +966,44 @@ abacus.plot <- function(n,time,id,data,tmin,tmax,xlab.abacus="Time",ylab.abacus=
 #' @param plot logical parameter indicating whether plots should be produced.
 #' @param legendx The x-coordinate for the position of the legend in the plot of mean proportion of individuals with 0, 1 and $>$ 1 visit per bin.
 #' @param legendy The y-coordinate for the position of the legend in the plot of mean proportion of individuals with 0, 1 and $>$ 1 visit per bin.
-#' @param formula For studies without protocolized visit times, the formula for the null counting process model for the visit times
+#' @param formula For studies without protocolized visit times, the formula for the null counting process model for the visit times.
 #' @param tau The maximum time of interest
-#' @return a list with counts equal to a 3-dimensional by ncutpts matrix giving, for each set of cutpoints, the mean proportion of individuals with zero, 1 and >1 visits per bin, and AUC, the area under the curve of the plot of the proportion of individuals with >1 visit per bin vs. the proportion of individuals with 0 visits per bin.
-# @examples
-# library(nlme)
-# library(survival)
-# data(Phenobarb)
-# Phenobarb$event <- 1-as.numeric(is.na(Phenobarb$conc))
-# data <- Phenobarb
-# data <- data[data$event==1,]
-# data$id <- as.numeric(data$Subject)
-# counts <- extent.of.irregularity(data,time="time",id="id",scheduledtimes=NULL,
-# cutpoints=NULL,ncutpts=10, maxfu=16*24,plot=TRUE,legendx=NULL,legendy=NULL,formula=Surv(time.lag,time,event)~1,tau=16*24)
-# counts$counts
-# counts$auc
+#' @param tmin The minimum time to be considered when constructing cutpoints for bins placed symmetrically around the scheduled observation times.
+#' @return a list with counts equal to a 3-dimensional by ncutpts matrix giving, for each set of cutpoints, the mean proportion of individuals with zero, 1 and >1 visits per bin, and AUC, the area under the curve of the plot of the proportion of individuals with >1 visit per bin vs. the proportion of individuals with 0 visits per bin. A transformed AUC (equal to 100(1-log(4*(0.2-auc))/log(2))) is also returned for easier interpretation; a transformed auc that is equal to zero represents repeated measures, while a transformed auc from assessment times occurring as a Poisson process has value 100.
+#' @references
+#' \itemize{
+#' \item Lokku A, Birken CS, Maguire JL, Pullenayegum EM. Quantifying the extent of visit irregularity in longitudinal data. International Journal of Biostatistics 2021; Biometrika 2001; pp. 20200144
+#' \item Lokku A, Lim LS, Birken CS, Pullenayegum EM. Summarizing the extent of visit irregularity in longitudinal data. BMC medical research methodology 2020; Vol.20 (1), p.135-135
+#' }
+#' @examples
+#' \dontrun{
+#' # time-consuming so not run in R package build
+#' library(nlme)
+#' library(survival)
+#' data(Phenobarb)
+#' Phenobarb$event <- 1-as.numeric(is.na(Phenobarb$conc))
+#' data <- Phenobarb
+#' data <- data[data$event==1,]
+#' data$id <- as.numeric(data$Subject)
+#' counts <- extent.of.irregularity(data,time="time",id="id",scheduledtimes=NULL,
+#' cutpoints=NULL,ncutpts=10, maxfu=16*24,plot=TRUE,legendx=NULL,legendy=NULL,
+#' formula=Surv(time.lag,time,event)~1,tau=16*24)
+#' counts$counts
+#' counts$auc
+#' }
 #' @export
 
-extent.of.irregularity <- function(data,time="time",id="id",scheduledtimes=NULL,cutpoints=NULL,ncutpts=NULL,maxfu=NULL,plot=FALSE,legendx=NULL,legendy=NULL,formula=NULL,tau=NULL){
+extent.of.irregularity <- function(data,time="time",id="id",scheduledtimes=NULL,cutpoints=NULL,ncutpts=NULL,maxfu=NULL,plot=FALSE,legendx=NULL,legendy=NULL,formula=NULL,tau=NULL,tmin=NULL){
+
+  # Error messages
+  if(is.null(scheduledtimes) & is.null(ncutpts)) print("Error - ncutpts must be supplied if scheduledtimes=NULL")
+  if(is.null(scheduledtimes) & is.null(formula)) print("Error - formula must be supplied if scheduledtimes=NULL")
 
   data <- data[order(data[,names(data)%in%id],data[,names(data)%in%time]),]
   time2 <- data[,names(data)%in%time]
   idvec <- data[,names(data)%in%id]
   if(!is.null(scheduledtimes)) if(scheduledtimes[length(scheduledtimes)]==maxfu) scheduledtimes <- scheduledtimes[-length(scheduledtimes)]
-  if(!is.null(scheduledtimes)){if(is.null(cutpoints)){ bin.widths <- 100*((1:(ncutpts-1))/ncutpts)} else{bin.widths <- 1:ncutpts }}
+  if(!is.null(scheduledtimes)){if(is.null(cutpoints)){ bin.widths <- 0.5*100*((1:(ncutpts-1))/ncutpts)} else{bin.widths <- 1:ncutpts }}
   if(is.null(scheduledtimes)) bin.widths <- 1:ncutpts
 
   # for a given set of cutpoints and observation times, getcounts finds the mean proportion of bins with zero, 1 and >1 observations per bin
@@ -999,9 +1038,9 @@ extent.of.irregularity <- function(data,time="time",id="id",scheduledtimes=NULL,
   if(!is.null(scheduledtimes)){
     # if cutpoints is not supplied, compute cutpoints symmetrically about each scheduled visit time
     if(is.null(cutpoints)){
-      gaps <- c(0,c(scheduledtimes[-1],maxfu)-scheduledtimes)
-      leftcutpoints <- -sweep(outer(gaps,((1:(ncutpts-1))/ncutpts),"*"),1,c(scheduledtimes,maxfu),"-")
-      rightcutpoints <- sweep(outer(gaps,((1:(ncutpts-1))/ncutpts),"*"),1,c(scheduledtimes,maxfu),"+")
+      gaps <- c(scheduledtimes-c(tmin,scheduledtimes[-length(scheduledtimes)]))
+      leftcutpoints <- -sweep(outer(gaps,((1:(ncutpts-1))/(2*ncutpts)),"*"),1,c(scheduledtimes),"-")
+      rightcutpoints <- sweep(outer(gaps,((1:(ncutpts-1))/(2*ncutpts)),"*"),1,c(scheduledtimes),"+")
       cutpoints <- array(dim=c(dim(t(leftcutpoints)),2))
       cutpoints[,,1] <- t(leftcutpoints)
       cutpoints[,,2] <- t(rightcutpoints)
@@ -1017,7 +1056,7 @@ extent.of.irregularity <- function(data,time="time",id="id",scheduledtimes=NULL,
   # if there are no scheduled times, compute cutpoints so that the expected number of observations per bin is equal
   if(is.null(scheduledtimes)){
     data$event <- 1; event <- "event"
-    cutpoints <- lapply(1:ncutpts,basehaz.cutpoints,formula,data,id,time,event,lagvars="time",maxfu=maxfu,tau)
+    cutpoints <- lapply(1:ncutpts,basehaz.cutpoints,formula,data,id,time,event,lagvars=time,maxfu=maxfu,tau)
     counts <- lapply(cutpoints,getcounts.nosched,time=time2)
     counts <- lapply(counts,mean2)
     counts <- array(unlist(counts),dim=c(3,length(counts)))
@@ -1037,7 +1076,8 @@ extent.of.irregularity <- function(data,time="time",id="id",scheduledtimes=NULL,
   }
   ord <- order(counts[3,])
   auc <- sum(diff(counts[3,ord])*(counts[1,ord][-dim(counts)[2]] + diff(counts[1,ord]/2)))
-  return(list(counts=counts,auc=auc))
+  transformed.auc <- 100*(1-log(4*(0.5-auc))/log(2))
+  return(list(counts=counts,auc=auc,transformed.auc=transformed.auc))
 
 }
 

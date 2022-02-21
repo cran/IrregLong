@@ -25,6 +25,7 @@ Create lagged versions the variables in data
 }
 \examples{
 library(nlme)
+library(data.table)
 data(Phenobarb)
 head(Phenobarb)
 

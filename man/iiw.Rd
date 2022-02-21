@@ -25,9 +25,9 @@ For a longitudinal dataset subject to irregular observation, use a Cox proportio
 }
 \examples{
 library(nlme)
-data(Phenobarb)
 library(survival)
 library(geepack)
+library(data.table)
 data(Phenobarb)
 Phenobarb$event <- 1-as.numeric(is.na(Phenobarb$conc))
 data <- Phenobarb

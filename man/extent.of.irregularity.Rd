@@ -17,7 +17,8 @@ extent.of.irregularity(
   legendx = NULL,
   legendy = NULL,
   formula = NULL,
-  tau = NULL
+  tau = NULL,
+  tmin = NULL
 )
 }
 \arguments{
@@ -41,12 +42,14 @@ extent.of.irregularity(
 
 \item{legendy}{The y-coordinate for the position of the legend in the plot of mean proportion of individuals with 0, 1 and $>$ 1 visit per bin.}
 
-\item{formula}{For studies without protocolized visit times, the formula for the null counting process model for the visit times}
+\item{formula}{For studies without protocolized visit times, the formula for the null counting process model for the visit times.}
 
 \item{tau}{The maximum time of interest}
+
+\item{tmin}{The minimum time to be considered when constructing cutpoints for bins placed symmetrically around the scheduled observation times.}
 }
 \value{
-a list with counts equal to a 3-dimensional by ncutpts matrix giving, for each set of cutpoints, the mean proportion of individuals with zero, 1 and >1 visits per bin, and AUC, the area under the curve of the plot of the proportion of individuals with >1 visit per bin vs. the proportion of individuals with 0 visits per bin.
+a list with counts equal to a 3-dimensional by ncutpts matrix giving, for each set of cutpoints, the mean proportion of individuals with zero, 1 and >1 visits per bin, and AUC, the area under the curve of the plot of the proportion of individuals with >1 visit per bin vs. the proportion of individuals with 0 visits per bin. A transformed AUC (equal to 100(1-log(4*(0.2-auc))/log(2))) is also returned for easier interpretation; a transformed auc that is equal to zero represents repeated measures, while a transformed auc from assessment times occurring as a Poisson process has value 100.
 }
 \description{
 Measures of extent of visit irregularity
@@ -54,4 +57,27 @@ Provides visual and numeric measures of the extent of irregularity in observatio
 }
 \details{
 This function provides plots and a numerical summary of the extent of irregularity in visit times. For any given set of cutpoints, it computes the proportion of individuals with 0, 1 and >1 observation(s) in each bin, then takes the mean over bins. The sizes of the bins are varied and these proportions are plotted against bin size. In addition, then mean proportion of individuals with >1 visit per bin is plotted vs. the mean proportion of individuals with 0 visits per bin, and the area under the curve is calculated (AUC). An AUC of 0 represents perfect repeated measures while a Poisson Process has an AUC of 0. If cutpoints are not supplied, they are computed as follows: (a) for studies with protocolized visit times, the left- and right-hand cutpoints are positioned at the protocolized time minus (or plus, for right-hand cutpoints) (1,...,ncutpts)/ncutpts times the gap to the previous (or next, respectively) protocolized visit time; (b) for studies with no protocolized visit times, cutpoints are calculated by finding, for each j in {1,...,ncutpts} the largest times for which the cumulative hazard is less than j divided by the cumulative hazard evaluated at the maximum time of interest. This corresponds to choosing cutpoints such that the expected number of visits per bin is roughly equal within each set.
+}
+\examples{
+\dontrun{
+# time-consuming so not run in R package build
+library(nlme)
+library(survival)
+data(Phenobarb)
+Phenobarb$event <- 1-as.numeric(is.na(Phenobarb$conc))
+data <- Phenobarb
+data <- data[data$event==1,]
+data$id <- as.numeric(data$Subject)
+counts <- extent.of.irregularity(data,time="time",id="id",scheduledtimes=NULL,
+cutpoints=NULL,ncutpts=10, maxfu=16*24,plot=TRUE,legendx=NULL,legendy=NULL,
+formula=Surv(time.lag,time,event)~1,tau=16*24)
+counts$counts
+counts$auc
+}
+}
+\references{
+\itemize{
+\item Lokku A, Birken CS, Maguire JL, Pullenayegum EM. Quantifying the extent of visit irregularity in longitudinal data. International Journal of Biostatistics 2021; Biometrika 2001; pp. 20200144
+\item Lokku A, Lim LS, Birken CS, Pullenayegum EM. Summarizing the extent of visit irregularity in longitudinal data. BMC medical research methodology 2020; Vol.20 (1), p.135-135
+}
 }
