@@ -2,7 +2,7 @@
 library(IrregLong)
 library(MEMSS)
 library(survival)
-library(geepack)
+library(geeM)
 library(data.table)
 
 ## -----------------------------------------------------------------------------
@@ -113,7 +113,9 @@ rsq1[which.max(rsq1)]
 
 ## -----------------------------------------------------------------------------
 
-iiwgee <- iiwgee(conc ~ time + I(time^3) + log(time),Surv(time.lag,time,event)~I(conc.lag>0 & conc.lag<=20) + 
+data$logtime <- log(data$time)
+data$time3 <- (data$time^3)/(mean(data$time^3))
+iiwgee <- iiwgee(conc ~ time + time3 + logtime,Surv(time.lag,time,event)~I(conc.lag>0 & conc.lag<=20) + 
                 I(conc.lag>20 & conc.lag<=30) + I(conc.lag>30) +cluster(id),
         formulanull=NULL,id="id",time="time",event="event",data=data,
         invariant=c("id","Wt"),lagvars=c("time","conc"),maxfu=16*24,lagfirst=c(0,0),first=FALSE)
@@ -122,10 +124,10 @@ iiwgee <- iiwgee(conc ~ time + I(time^3) + log(time),Surv(time.lag,time,event)~I
 summary(iiwgee$geefit)
 
 ## ----fig2, fig.height=6, fig.width=6, fig.align="center"----------------------
-m <- geeglm(conc ~ time + I(time^3) + log(time) , id=Subject, data=data)
+m <- geem(conc ~ time + I(time^3) + log(time) , id=Subject, data=data)
 time <- (2:200)
-unweighted <- cbind(rep(1,199),time,time^3,log(time))%*%m$coefficients
-weighted <- cbind(rep(1,199),time,time^3,log(time))%*%iiwgee$geefit$coefficients
+unweighted <- cbind(rep(1,199),time,time^3,log(time))%*%m$beta
+weighted <- cbind(rep(1,199),time,time^3/mean(data$time^3),log(time))%*%iiwgee$geefit$beta
 plot(data$time,data$conc,xlim=c(0,199),ylim=c(min(unweighted,weighted,data$conc),max(unweighted,weighted,data$conc)),pch=16,xlab="Time",ylab="Serum phenobarbital concentration")
 lines(time,unweighted,type="l")
 lines(time,weighted,col=2)
@@ -139,7 +141,8 @@ summary(iiwgee$phfit)
 #  
 #  
 #  reg <- function(data){
-#    est <- summary(geeglm(conc~time + I(time^3), id=id,data=data))$coefficients[,1:2]
+#    m <- geem(conc~time + I(time^3), id=id,data=data)
+#    est <- cbind(m$beta,summary(m)$se.robust)
 #    if(max(table(data$id))>1) est[,2] <- GEE.var.md(conc~time + I(time^3) , id=id,data=data)$cov.beta
 #    est <- data.matrix(est)
 #    return(est)
