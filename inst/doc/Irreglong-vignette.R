@@ -1,8 +1,13 @@
+## ----include = FALSE----------------------------------------------------------
+knitr::opts_chunk$set(
+  eval = requireNamespace("nlme", quietly = TRUE)
+)
+
 ## ----results='hide',message=FALSE, warning=FALSE------------------------------
 library(IrregLong)
-library(MEMSS)
+library(nlme)
 library(survival)
-library(geeM)
+library(geepack)
 library(data.table)
 
 ## -----------------------------------------------------------------------------
@@ -124,10 +129,10 @@ iiwgee <- iiwgee(conc ~ time + time3 + logtime,Surv(time.lag,time,event)~I(conc.
 summary(iiwgee$geefit)
 
 ## ----fig2, fig.height=6, fig.width=6, fig.align="center"----------------------
-m <- geem(conc ~ time + I(time^3) + log(time) , id=Subject, data=data)
+m <- geeglm(conc ~ time + I(time^3) + log(time) , id=Subject, data=data)
 time <- (2:200)
-unweighted <- cbind(rep(1,199),time,time^3,log(time))%*%m$beta
-weighted <- cbind(rep(1,199),time,time^3/mean(data$time^3),log(time))%*%iiwgee$geefit$beta
+unweighted <- cbind(rep(1,199),time,time^3,log(time))%*%m$coefficients
+weighted <- cbind(rep(1,199),time,time^3/mean(data$time^3),log(time))%*%iiwgee$geefit$coefficients
 plot(data$time,data$conc,xlim=c(0,199),ylim=c(min(unweighted,weighted,data$conc),max(unweighted,weighted,data$conc)),pch=16,xlab="Time",ylab="Serum phenobarbital concentration")
 lines(time,unweighted,type="l")
 lines(time,weighted,col=2)
@@ -141,8 +146,8 @@ summary(iiwgee$phfit)
 #  
 #  
 #  reg <- function(data){
-#    m <- geem(conc~time + I(time^3), id=id,data=data)
-#    est <- cbind(m$beta,summary(m)$se.robust)
+#    m <- geeglm(conc~time + I(time^3), id=id,data=data)
+#    est <- summary(m)$coefficients[,1:2]
 #    if(max(table(data$id))>1) est[,2] <- GEE.var.md(conc~time + I(time^3) , id=id,data=data)$cov.beta
 #    est <- data.matrix(est)
 #    return(est)

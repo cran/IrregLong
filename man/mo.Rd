@@ -45,10 +45,11 @@ a list containing the multiple outputation estimate of the function fn applied t
 Multiple outputation is a procedure whereby excess observations are repeatedly randomly sampled and discarded. The method was originally developed to handle clustered data where cluster size is informative, for example when studying pups in a litter. In this case, analysis that ignores cluster size results in larger litters being over-represented in a marginal analysis. Multiple outputation circumvents this problem by randomly selecting one observation per cluster. Multiple outputation has been further adapted to handle longitudinal data subject to irregular observation; here the probability of being retained on any given outputation is inversely proportional to the visit intensity. This function creates multiply outputted datasets, analyses each separately, and combines the results to produce a single estimate.
 }
 \examples{
+\dontshow{if (requireNamespace("nlme", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 library(nlme)
 data(Phenobarb)
 library(survival)
-library(geeM)
+library(geepack)
 library(data.table)
 
 Phenobarb$event <- 1-as.numeric(is.na(Phenobarb$conc))
@@ -64,8 +65,7 @@ wt <- i$iiw.weight
 wt[wt>quantile(i$iiw.weight,0.95)] <- quantile(i$iiw.weight,0.95)
 data$wt <- wt
 reg <- function(data){
-m <- geem(conc~I(time^3) + log(time), id=id,data=data)
-est <- cbind(summary(m)$beta,summary(m)$se.robust)
+est <- summary(geeglm(conc~I(time^3) + log(time), id=id,data=data))$coefficients[,1:2]
 est <- data.matrix(est)
 return(est)
 }
@@ -75,6 +75,7 @@ mo(20,reg,data,wt,singleobs=FALSE,id="id",time="time",keep.first=FALSE)
 # and hence the GEE sandwich variance estimate underestimates variance; this is why
 # the outputation-based variance estimate fails. This can be remedied by using a
 # sandwich variance error correction (e.g. Fay-Graubard, Mancl-DeRouen).
+\dontshow{\}) # examplesIf}
 }
 \references{
 \itemize{
